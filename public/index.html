@@ -70,29 +70,37 @@
          功能切換
     ================================== -->
 
-    <nav
-      id="navigation"
-      class="navigation"
-      style="display: none;"
-    >
+<nav
+  id="navigation"
+  class="navigation"
+  style="display: none;"
+>
 
-      <button
-        id="createViewButton"
-        class="navigation-button active"
-        type="button"
-      >
-        🔧 我要報修
-      </button>
+  <button
+    id="createViewButton"
+    class="navigation-button active"
+    type="button"
+  >
+    🔧 我要報修
+  </button>
 
-      <button
-        id="myRepairsViewButton"
-        class="navigation-button"
-        type="button"
-      >
-        🔍 我的案件
-      </button>
+  <button
+    id="myRepairsViewButton"
+    class="navigation-button"
+    type="button"
+  >
+    🔍 我的案件
+  </button>
 
-    </nav>
+  <button
+    id="engineerViewButton"
+    class="navigation-button"
+    type="button"
+  >
+    👨‍🔧 維修任務
+  </button>
+
+</nav>
 
 
     <!-- =================================
@@ -294,7 +302,78 @@
 
     </section>
 
+<!-- =================================
+     我的維修任務頁面
+================================== -->
 
+<section
+  id="engineerView"
+  class="view-section"
+  style="display: none;"
+>
+
+  <div class="section-heading section-heading-row">
+
+    <div>
+      <h2>我的維修任務</h2>
+
+      <p>
+        查看並更新指派給您的維修案件
+      </p>
+    </div>
+
+    <button
+      id="refreshEngineerButton"
+      class="refresh-button"
+      type="button"
+    >
+      ↻ 重新整理
+    </button>
+
+  </div>
+
+
+  <div
+    id="engineerLoading"
+    class="state-message"
+    style="display: none;"
+  >
+    正在查詢維修任務...
+  </div>
+
+
+  <div
+    id="engineerError"
+    class="state-message error-message"
+    style="display: none;"
+  >
+  </div>
+
+
+  <div
+    id="engineerEmpty"
+    class="state-message empty-message"
+    style="display: none;"
+  >
+
+    <div class="empty-icon">
+      🧰
+    </div>
+
+    <strong>
+      目前沒有指派給您的維修案件
+    </strong>
+
+    <p>
+      kintone 指派案件後，任務會顯示在這裡。
+    </p>
+
+  </div>
+
+
+  <div id="engineerRepairsList"></div>
+
+</section>
     <!-- =================================
          案件詳細資料視窗
     ================================== -->
@@ -335,7 +414,119 @@
 
   </main>
 
+<!-- =================================
+     工程師維修更新視窗
+================================== -->
 
+<div
+  id="engineerUpdateModal"
+  class="modal"
+  style="display: none;"
+>
+
+  <div class="modal-overlay"></div>
+
+  <div class="modal-content">
+
+    <div class="modal-header">
+
+      <h2 id="engineerModalTitle">
+        更新維修進度
+      </h2>
+
+      <button
+        id="closeEngineerModalButton"
+        class="close-button"
+        type="button"
+        aria-label="關閉維修更新視窗"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <div id="engineerCaseSummary"></div>
+
+
+    <form id="engineerUpdateForm">
+
+      <input
+        id="engineerRecordId"
+        type="hidden"
+      >
+
+
+      <label for="engineerStatus">
+        處理狀態 *
+      </label>
+
+      <select
+        id="engineerStatus"
+        required
+      >
+        <option value="已指派工程師">
+          已指派工程師
+        </option>
+
+        <option value="維修中">
+          維修中
+        </option>
+
+        <option value="無法維修">
+          無法維修
+        </option>
+
+        <option value="已完成">
+          已完成
+        </option>
+      </select>
+
+
+      <label for="engineerExpectedDate">
+        預計完成日期
+      </label>
+
+      <input
+        id="engineerExpectedDate"
+        type="date"
+      >
+
+
+      <label for="engineerActualDate">
+        實際完成日期
+      </label>
+
+      <input
+        id="engineerActualDate"
+        type="date"
+      >
+
+
+      <label for="engineerResult">
+        維修進度／維修結果
+      </label>
+
+      <textarea
+        id="engineerResult"
+        placeholder="例如：已完成初步檢查，等待更換零件"
+      ></textarea>
+
+
+      <button
+        id="engineerUpdateButton"
+        class="primary-button"
+        type="submit"
+      >
+        更新維修進度
+      </button>
+
+    </form>
+
+  </div>
+
+</div>
+  
   <script src="/app.js"></script>
 
 </body>
