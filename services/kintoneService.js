@@ -196,7 +196,149 @@ const record = {
   };
 }
 
+// ========================================
+// 查詢目前使用者報修的案件
+// ========================================
+
+async function getMyRepairs(lineworksUserId) {
+
+  checkConfig();
+
+  if (!lineworksUserId) {
+    throw new Error(
+      "缺少 LINE WORKS User ID"
+    );
+  }
+
+
+  // 防止 query 特殊字元造成問題
+  const safeUserId =
+    lineworksUserId
+      .replace(/\\/g, "\\\\")
+      .replace(/"/g, '\\"');
+
+
+  // kintone Query
+  // 只抓目前 LINE WORKS 使用者建立的案件
+  const query =
+    `lineworks_user_id = "${safeUserId}" ` +
+    `order by application_date desc, $id desc`;
+
+
+  const response = await axios.get(
+    `${KINTONE_BASE_URL}/k/v1/records.json`,
+    {
+      headers: {
+        "X-Cybozu-API-Token":
+          KINTONE_API_TOKEN
+      },
+
+      params: {
+        app: Number(KINTONE_APP_ID),
+        query: query,
+
+        fields: [
+          "$id",
+          "$revision",
+          "application_date",
+          "equipment_category",
+          "equipment_number",
+          "equipment_name",
+          "location",
+          "fault_description",
+          "fault_photo",
+          "處理狀態",
+          "maintenance_staff",
+          "expected_completion_date",
+          "actual_completion_date",
+          "maintenance_result",
+          "lineworks_user_id"
+        ]
+      }
+    }
+  );
+
+
+  // ======================================
+  // 整理成前端比較好使用的格式
+  // ======================================
+
+  const repairs =
+    response.data.records.map(
+      (record) => {
+
+        return {
+
+          recordId:
+            record.$id?.value || "",
+
+          applicationDate:
+            record.application_date?.value ||
+            "",
+
+          equipmentCategory:
+            record.equipment_category?.value ||
+            "",
+
+          equipmentNumber:
+            record.equipment_number?.value ||
+            "",
+
+          equipmentName:
+            record.equipment_name?.value ||
+            "",
+
+          location:
+            record.location?.value ||
+            "",
+
+          description:
+            record.fault_description?.value ||
+            "",
+
+          status:
+            record["處理狀態"]?.value ||
+            "",
+
+          maintenanceStaff:
+            (
+              record.maintenance_staff?.value ||
+              []
+            ).map(
+              (user) => ({
+                code: user.code,
+                name: user.name
+              })
+            ),
+
+          expectedCompletionDate:
+            record
+              .expected_completion_date
+              ?.value || "",
+
+          actualCompletionDate:
+            record
+              .actual_completion_date
+              ?.value || "",
+
+          maintenanceResult:
+            record
+              .maintenance_result
+              ?.value || "",
+
+          photoCount:
+            record.fault_photo?.value
+              ?.length || 0
+        };
+      }
+    );
+
+
+  return repairs;
+}
 
 module.exports = {
-  createRepair
+  createRepair,
+  getMyRepairs
+};
 };
