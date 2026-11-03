@@ -1,3 +1,5 @@
+window.appJsStarted = true;
+
 const WOFF_ID =
   "9JL2mUAWcP-q0Qx-vEpTNg";
 
