@@ -14,28 +14,36 @@
   <link rel="stylesheet" href="/style.css">
 
   <!-- LINE WORKS WOFF SDK -->
-<script
-  charset="utf-8"
-  src="https://static.worksmobile.net/static/wm/woff/edge/3.7.1/sdk.js">
-</script>
+  <script
+    charset="utf-8"
+    src="https://static.worksmobile.net/static/wm/woff/edge/3.7.1/sdk.js">
+  </script>
 </head>
 
 <body>
 
   <main>
 
-    <h1>🔧 設備報修</h1>
+    <!-- =================================
+         頁首
+    ================================== -->
 
-    <p>
-      請填寫設備故障資訊
-    </p>
+    <header class="app-header">
+
+      <h1>🔧 設備報修</h1>
+
+      <p>
+        LINE WORKS × kintone
+      </p>
+
+    </header>
 
 
-    <!-- =========================
-         LINE WORKS 使用者
-    ========================== -->
+    <!-- =================================
+         LINE WORKS 使用者資訊
+    ================================== -->
 
-    <div id="userSection">
+    <section id="userSection">
 
       <div id="userLoading">
         正在取得 LINE WORKS 使用者資訊...
@@ -45,113 +53,285 @@
         id="userInfo"
         style="display: none;"
       >
-        👤 報修人：
+        👤
         <strong id="displayUserName"></strong>
       </div>
 
       <div
         id="userError"
-        style="display: none; color: #d93025;"
+        style="display: none;"
       >
       </div>
 
-    </div>
+    </section>
 
 
-    <!-- =========================
-         報修表單
-    ========================== -->
+    <!-- =================================
+         功能切換
+    ================================== -->
 
-    <form id="repairForm">
-
-      <label for="equipmentCategory">
-        設備類別 *
-      </label>
-
-      <input
-        id="equipmentCategory"
-        name="equipmentCategory"
-        type="text"
-        required
-      >
-
-
-      <label for="equipmentNumber">
-        設備編號
-      </label>
-
-      <input
-        id="equipmentNumber"
-        name="equipmentNumber"
-        type="text"
-      >
-
-
-      <label for="equipmentName">
-        設備名稱 *
-      </label>
-
-      <input
-        id="equipmentName"
-        name="equipmentName"
-        type="text"
-        required
-      >
-
-
-      <label for="location">
-        所在位置 *
-      </label>
-
-      <input
-        id="location"
-        name="location"
-        type="text"
-        required
-      >
-
-
-      <label for="description">
-        故障描述 *
-      </label>
-
-      <textarea
-        id="description"
-        name="description"
-        required
-      ></textarea>
-
-
-      <label for="images">
-        故障照片
-      </label>
-
-      <input
-        id="images"
-        name="images"
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        capture="environment"
-        multiple
-      >
-
-      <small>
-        最多 3 張，每張最大 10 MB
-      </small>
-
-
-      <div id="imagePreview"></div>
-
+    <nav
+      id="navigation"
+      class="navigation"
+      style="display: none;"
+    >
 
       <button
-        id="submitButton"
-        type="submit"
-        disabled
+        id="createViewButton"
+        class="navigation-button active"
+        type="button"
       >
-        LINE WORKS 登入確認中...
+        🔧 我要報修
       </button>
 
-    </form>
+      <button
+        id="myRepairsViewButton"
+        class="navigation-button"
+        type="button"
+      >
+        🔍 我的案件
+      </button>
+
+    </nav>
+
+
+    <!-- =================================
+         建立報修頁面
+    ================================== -->
+
+    <section
+      id="createRepairView"
+      class="view-section"
+    >
+
+      <div class="section-heading">
+
+        <h2>建立報修</h2>
+
+        <p>
+          請填寫設備故障資訊
+        </p>
+
+      </div>
+
+
+      <form id="repairForm">
+
+        <label for="equipmentCategory">
+          設備類別 *
+        </label>
+
+        <input
+          id="equipmentCategory"
+          name="equipmentCategory"
+          type="text"
+          placeholder="例如：複合機、空調、電腦"
+          required
+        >
+
+
+        <label for="equipmentNumber">
+          設備編號
+        </label>
+
+        <input
+          id="equipmentNumber"
+          name="equipmentNumber"
+          type="text"
+          placeholder="例如：MFP-001"
+        >
+
+
+        <label for="equipmentName">
+          設備名稱 *
+        </label>
+
+        <input
+          id="equipmentName"
+          name="equipmentName"
+          type="text"
+          placeholder="例如：Apeos C3570"
+          required
+        >
+
+
+        <label for="location">
+          所在位置 *
+        </label>
+
+        <input
+          id="location"
+          name="location"
+          type="text"
+          placeholder="例如：3F 業務部"
+          required
+        >
+
+
+        <label for="description">
+          故障描述 *
+        </label>
+
+        <textarea
+          id="description"
+          name="description"
+          placeholder="請描述故障狀況，例如：列印時持續卡紙"
+          required
+        ></textarea>
+
+
+        <label for="images">
+          故障照片
+        </label>
+
+        <input
+          id="images"
+          name="images"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          capture="environment"
+          multiple
+        >
+
+        <small class="field-note">
+          最多 3 張，每張最大 10 MB
+        </small>
+
+
+        <div id="imagePreview"></div>
+
+
+        <button
+          id="submitButton"
+          class="primary-button"
+          type="submit"
+          disabled
+        >
+          LINE WORKS 登入確認中...
+        </button>
+
+      </form>
+
+    </section>
+
+
+    <!-- =================================
+         我的報修案件頁面
+    ================================== -->
+
+    <section
+      id="myRepairsView"
+      class="view-section"
+      style="display: none;"
+    >
+
+      <div class="section-heading section-heading-row">
+
+        <div>
+          <h2>我的報修案件</h2>
+
+          <p>
+            查詢您所提出的設備報修
+          </p>
+        </div>
+
+        <button
+          id="refreshRepairsButton"
+          class="refresh-button"
+          type="button"
+        >
+          ↻ 重新整理
+        </button>
+
+      </div>
+
+
+      <!-- 查詢中 -->
+
+      <div
+        id="repairsLoading"
+        class="state-message"
+        style="display: none;"
+      >
+        正在查詢報修案件...
+      </div>
+
+
+      <!-- 查詢錯誤 -->
+
+      <div
+        id="repairsError"
+        class="state-message error-message"
+        style="display: none;"
+      >
+      </div>
+
+
+      <!-- 沒有案件 -->
+
+      <div
+        id="repairsEmpty"
+        class="state-message empty-message"
+        style="display: none;"
+      >
+        <div class="empty-icon">
+          📭
+        </div>
+
+        <strong>
+          目前沒有報修案件
+        </strong>
+
+        <p>
+          若設備發生問題，可以點選「我要報修」建立案件。
+        </p>
+      </div>
+
+
+      <!-- 案件清單 -->
+
+      <div id="repairsList"></div>
+
+    </section>
+
+
+    <!-- =================================
+         案件詳細資料視窗
+    ================================== -->
+
+    <div
+      id="repairDetailModal"
+      class="modal"
+      style="display: none;"
+    >
+
+      <div class="modal-overlay"></div>
+
+      <div class="modal-content">
+
+        <div class="modal-header">
+
+          <h2 id="detailTitle">
+            案件詳情
+          </h2>
+
+          <button
+            id="closeDetailButton"
+            class="close-button"
+            type="button"
+            aria-label="關閉案件詳情"
+          >
+            ×
+          </button>
+
+        </div>
+
+
+        <div id="repairDetailContent"></div>
+
+      </div>
+
+    </div>
 
   </main>
 
