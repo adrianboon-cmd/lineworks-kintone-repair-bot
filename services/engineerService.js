@@ -109,8 +109,20 @@ function formatRepair(record) {
         .maintenance_result
         ?.value || "",
 
-    photoCount:
-      record.fault_photo?.value?.length || 0
+photos:
+  (
+    record.fault_photo?.value || []
+  ).map(
+    (file) => ({
+      fileKey: file.fileKey,
+      name: file.name,
+      contentType: file.contentType,
+      size: file.size
+    })
+  ),
+
+photoCount:
+  record.fault_photo?.value?.length || 0
   };
 }
 
@@ -382,9 +394,55 @@ async function updateRepairProgress({
     status
   };
 }
+// ========================================
+// 下載 kintone 附件
+// ========================================
 
+async function downloadRepairPhoto(
+  fileKey
+) {
+
+  checkConfig();
+
+  if (!fileKey) {
+    throw new Error(
+      "缺少圖片 File Key"
+    );
+  }
+
+  const response =
+    await axios.get(
+      `${KINTONE_BASE_URL}/k/v1/file.json`,
+      {
+        headers: {
+          "X-Cybozu-API-Token":
+            KINTONE_API_TOKEN
+        },
+
+        params: {
+          fileKey
+        },
+
+        responseType:
+          "arraybuffer"
+      }
+    );
+
+
+  return {
+    data:
+      response.data,
+
+    contentType:
+      response.headers[
+        "content-type"
+      ] ||
+      "application/octet-stream"
+  };
+}
 
 module.exports = {
   getAssignedRepairs,
-  updateRepairProgress
+  updateRepairProgress,
+  downloadRepairPhoto
 };
