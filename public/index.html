@@ -125,17 +125,47 @@
 
       <form id="repairForm">
 
-        <label for="equipmentCategory">
-          設備類別 *
-        </label>
+<label for="equipmentCategory">
+  設備類別 *
+</label>
 
-        <input
-          id="equipmentCategory"
-          name="equipmentCategory"
-          type="text"
-          placeholder="例如：複合機、空調、電腦"
-          required
-        >
+<select
+  id="equipmentCategory"
+  name="equipmentCategory"
+  required
+>
+  <option value="">
+    請選擇設備類別
+  </option>
+
+  <option value="辦公設備">
+    辦公設備
+  </option>
+
+  <option value="電腦及資訊設備">
+    電腦及資訊設備
+  </option>
+
+  <option value="網路及通訊設備">
+    網路及通訊設備
+  </option>
+
+  <option value="生產設備">
+    生產設備
+  </option>
+
+  <option value="空調及機電設備">
+    空調及機電設備
+  </option>
+
+  <option value="門禁及監控設備">
+    門禁及監控設備
+  </option>
+
+  <option value="其他">
+    其他
+  </option>
+</select>
 
 
         <label for="equipmentNumber">
@@ -163,18 +193,57 @@
         >
 
 
-        <label for="location">
-          所在位置 *
-        </label>
+<label for="location">
+  所在位置 *
+</label>
 
-        <input
-          id="location"
-          name="location"
-          type="text"
-          placeholder="例如：3F 業務部"
-          required
-        >
+<select
+  id="location"
+  name="location"
+  required
+>
+  <option value="">
+    請選擇設備所在位置
+  </option>
 
+  <optgroup label="總公司">
+    <option value="總公司 6F 辦公室">
+      總公司 6F 辦公室
+    </option>
+
+    <option value="總公司 7F 辦公室">
+      總公司 7F 辦公室
+    </option>
+
+    <option value="總公司 公共區域">
+      總公司 公共區域
+    </option>
+  </optgroup>
+
+  <optgroup label="桃園廠">
+    <option value="桃園廠 產線 A">
+      桃園廠 產線 A
+    </option>
+
+    <option value="桃園廠 產線 B">
+      桃園廠 產線 B
+    </option>
+
+    <option value="桃園廠 倉庫">
+      桃園廠 倉庫
+    </option>
+
+    <option value="桃園廠 辦公室">
+      桃園廠 辦公室
+    </option>
+  </optgroup>
+
+  <optgroup label="其他">
+    <option value="其他">
+      其他位置
+    </option>
+  </optgroup>
+</select>
 
         <label for="description">
           故障描述 *
