@@ -2,6 +2,10 @@ const WOFF_ID =
   "9JL2mUAWcP-q0Qx-vEpTNg";
 
 
+// ========================================
+// DOM
+// ========================================
+
 const repairForm =
   document.getElementById("repairForm");
 
@@ -26,6 +30,52 @@ const userError =
 const displayUserName =
   document.getElementById("displayUserName");
 
+const navigation =
+  document.getElementById("navigation");
+
+const createViewButton =
+  document.getElementById("createViewButton");
+
+const myRepairsViewButton =
+  document.getElementById("myRepairsViewButton");
+
+const createRepairView =
+  document.getElementById("createRepairView");
+
+const myRepairsView =
+  document.getElementById("myRepairsView");
+
+const refreshRepairsButton =
+  document.getElementById("refreshRepairsButton");
+
+const repairsLoading =
+  document.getElementById("repairsLoading");
+
+const repairsError =
+  document.getElementById("repairsError");
+
+const repairsEmpty =
+  document.getElementById("repairsEmpty");
+
+const repairsList =
+  document.getElementById("repairsList");
+
+const repairDetailModal =
+  document.getElementById("repairDetailModal");
+
+const repairDetailContent =
+  document.getElementById("repairDetailContent");
+
+const detailTitle =
+  document.getElementById("detailTitle");
+
+const closeDetailButton =
+  document.getElementById("closeDetailButton");
+
+
+// ========================================
+// 圖片限制
+// ========================================
 
 const MAX_FILES = 3;
 
@@ -40,10 +90,71 @@ const ALLOWED_TYPES = [
 
 
 // ========================================
-// LINE WORKS 使用者
+// 狀態
 // ========================================
 
 let currentUser = null;
+
+let currentRepairs = [];
+
+let repairsLoaded = false;
+
+
+// ========================================
+// HTML 安全處理
+// ========================================
+
+function escapeHtml(value) {
+
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+
+// ========================================
+// 日期顯示
+// ========================================
+
+function formatDate(value) {
+
+  if (!value) {
+    return "未設定";
+  }
+
+  const parts =
+    String(value).split("-");
+
+  if (parts.length !== 3) {
+    return value;
+  }
+
+  return `${parts[0]}/${parts[1]}/${parts[2]}`;
+}
+
+
+// ========================================
+// 狀態樣式
+// ========================================
+
+function getStatusClass(status) {
+
+  const statusMap = {
+    "待分派工程師處理": "status-waiting",
+    "已指派工程師": "status-assigned",
+    "維修中": "status-progress",
+    "無法維修": "status-unrepairable",
+    "已完成": "status-completed"
+  };
+
+  return (
+    statusMap[status] ||
+    "status-default"
+  );
+}
 
 
 // ========================================
@@ -54,61 +165,15 @@ async function initializeWOFF() {
 
   try {
 
-    console.log("Starting WOFF initialization...");
+    await woff.init({
+      woffId: WOFF_ID,
+      scope: "openid user.profile.read"
+    });
 
-
-    // ------------------------------------
-    // 1. 初始化 WOFF
-    // ------------------------------------
-
-await woff.init({
-  woffId: WOFF_ID,
-  scope: "openid user.profile.read"
-});
-
-
-    console.log(
-      "WOFF initialized successfully"
-    );
-
-
-    // ------------------------------------
-    // 2. 顯示執行環境
-    // ------------------------------------
-
-    console.log(
-      "Is in LINE WORKS client:",
-      woff.isInClient()
-    );
-
-
-    // ------------------------------------
-    // 3. 取得登入使用者 Profile
-    // ------------------------------------
 
     const profile =
       await woff.getProfile();
 
-
-    console.log(
-      "LINE WORKS profile:",
-      profile
-    );
-
-
-    // ------------------------------------
-    // 4. 整理使用者資料
-    // ------------------------------------
-
-    /*
-      WOFF Profile 回傳欄位會依環境與版本而異。
-
-      我們優先使用：
-      userId
-      displayName
-
-      並保留 fallback。
-    */
 
     const userId =
       profile.userId ||
@@ -145,10 +210,6 @@ await woff.init({
     };
 
 
-    // ------------------------------------
-    // 5. 更新畫面
-    // ------------------------------------
-
     displayUserName.textContent =
       currentUser.userName;
 
@@ -162,10 +223,9 @@ await woff.init({
     userInfo.style.display =
       "block";
 
+    navigation.style.display =
+      "grid";
 
-    // ------------------------------------
-    // 6. 開放報修按鈕
-    // ------------------------------------
 
     submitButton.disabled =
       false;
@@ -174,54 +234,199 @@ await woff.init({
       "送出報修";
 
 
-    console.log(
-      "Current LINE WORKS user:",
-      currentUser
+    // 根據 URL 的 view 參數切換功能
+    const params =
+      new URLSearchParams(
+        window.location.search
+      );
+
+    const requestedView =
+      params.get("view");
+
+
+    if (
+      requestedView ===
+      "my-repairs"
+    ) {
+
+      showMyRepairsView();
+
+    } else {
+
+      showCreateRepairView();
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      "WOFF initialization error:",
+      error
     );
 
 
-} catch (error) {
+    currentUser = null;
 
-  console.error(
-    "WOFF initialization error:",
-    error
+
+    userLoading.style.display =
+      "none";
+
+    userInfo.style.display =
+      "none";
+
+    navigation.style.display =
+      "none";
+
+    userError.style.display =
+      "block";
+
+
+    const errorCode =
+      error?.code ||
+      error?.error ||
+      "UNKNOWN";
+
+
+    const errorMessage =
+      error?.message ||
+      String(error);
+
+
+    userError.innerHTML =
+      `LINE WORKS 使用者資訊取得失敗<br>` +
+      `Error Code：${escapeHtml(errorCode)}<br>` +
+      `Error Message：${escapeHtml(errorMessage)}`;
+
+
+    submitButton.disabled =
+      true;
+
+    submitButton.textContent =
+      "無法取得登入資訊";
+  }
+}
+
+
+// ========================================
+// 顯示建立報修
+// ========================================
+
+function showCreateRepairView() {
+
+  createRepairView.style.display =
+    "block";
+
+  myRepairsView.style.display =
+    "none";
+
+
+  createViewButton.classList.add(
+    "active"
   );
 
-  currentUser = null;
+  myRepairsViewButton.classList.remove(
+    "active"
+  );
 
-  userLoading.style.display = "none";
-  userInfo.style.display = "none";
-  userError.style.display = "block";
 
-  const errorCode =
-    error?.code ||
-    error?.error ||
-    "UNKNOWN";
+  updateViewParameter("create");
 
-  const errorMessage =
-    error?.message ||
-    JSON.stringify(error);
 
-  userError.innerHTML =
-    `LINE WORKS 使用者資訊取得失敗<br>
-     Error Code：${errorCode}<br>
-     Error Message：${errorMessage}`;
-
-  submitButton.disabled = true;
-
-  submitButton.textContent =
-    "無法取得登入資訊";
-}
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
 }
 
 
 // ========================================
-// 頁面完成載入後初始化 WOFF
+// 顯示我的案件
 // ========================================
 
-window.addEventListener(
-  "load",
-  initializeWOFF
+function showMyRepairsView() {
+
+  createRepairView.style.display =
+    "none";
+
+  myRepairsView.style.display =
+    "block";
+
+
+  createViewButton.classList.remove(
+    "active"
+  );
+
+  myRepairsViewButton.classList.add(
+    "active"
+  );
+
+
+  updateViewParameter(
+    "my-repairs"
+  );
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+
+  if (!repairsLoaded) {
+
+    loadMyRepairs();
+  }
+}
+
+
+// ========================================
+// 更新網址 view 參數
+// ========================================
+
+function updateViewParameter(view) {
+
+  const url =
+    new URL(
+      window.location.href
+    );
+
+
+  if (view === "create") {
+
+    url.searchParams.delete(
+      "view"
+    );
+
+  } else {
+
+    url.searchParams.set(
+      "view",
+      view
+    );
+  }
+
+
+  window.history.replaceState(
+    {},
+    "",
+    url
+  );
+}
+
+
+// ========================================
+// 功能切換按鈕
+// ========================================
+
+createViewButton.addEventListener(
+  "click",
+  showCreateRepairView
+);
+
+
+myRepairsViewButton.addEventListener(
+  "click",
+  showMyRepairsView
 );
 
 
@@ -241,10 +446,6 @@ imageInput.addEventListener(
       );
 
 
-    // ------------------------------------
-    // 最多 3 張
-    // ------------------------------------
-
     if (
       files.length >
       MAX_FILES
@@ -260,16 +461,8 @@ imageInput.addEventListener(
     }
 
 
-    // ------------------------------------
-    // 圖片檢查
-    // ------------------------------------
+    for (const file of files) {
 
-    for (
-      const file of files
-    ) {
-
-
-      // 格式
       if (
         !ALLOWED_TYPES.includes(
           file.type
@@ -277,19 +470,18 @@ imageInput.addEventListener(
       ) {
 
         alert(
-          `不支援圖片格式：${file.name}\n請使用 JPG、PNG 或 WebP`
+          `不支援圖片格式：${file.name}\n` +
+          "請使用 JPG、PNG 或 WebP"
         );
 
         imageInput.value = "";
 
-        imagePreview.innerHTML =
-          "";
+        imagePreview.innerHTML = "";
 
         return;
       }
 
 
-      // 大小
       if (
         file.size >
         MAX_FILE_SIZE
@@ -301,16 +493,11 @@ imageInput.addEventListener(
 
         imageInput.value = "";
 
-        imagePreview.innerHTML =
-          "";
+        imagePreview.innerHTML = "";
 
         return;
       }
 
-
-      // --------------------------------
-      // 預覽
-      // --------------------------------
 
       const img =
         document.createElement(
@@ -350,7 +537,7 @@ imageInput.addEventListener(
 
 
 // ========================================
-// 報修表單送出
+// 送出報修
 // ========================================
 
 repairForm.addEventListener(
@@ -360,23 +547,15 @@ repairForm.addEventListener(
     event.preventDefault();
 
 
-    // ====================================
-    // LINE WORKS 登入檢查
-    // ====================================
-
     if (!currentUser) {
 
       alert(
-        "尚未取得 LINE WORKS 使用者資訊，請重新從 LINE WORKS 開啟報修頁面。"
+        "尚未取得 LINE WORKS 使用者資訊，請重新開啟報修頁面。"
       );
 
       return;
     }
 
-
-    // ====================================
-    // 表單欄位
-    // ====================================
 
     const equipmentCategory =
       document
@@ -414,15 +593,9 @@ repairForm.addEventListener(
         .trim();
 
 
-    // ====================================
-    // 必填欄位檢查
-    // ====================================
-
     if (!equipmentCategory) {
 
-      alert(
-        "請填寫設備類別"
-      );
+      alert("請填寫設備類別");
 
       return;
     }
@@ -430,9 +603,7 @@ repairForm.addEventListener(
 
     if (!equipmentName) {
 
-      alert(
-        "請填寫設備名稱"
-      );
+      alert("請填寫設備名稱");
 
       return;
     }
@@ -440,9 +611,7 @@ repairForm.addEventListener(
 
     if (!location) {
 
-      alert(
-        "請填寫所在位置"
-      );
+      alert("請填寫所在位置");
 
       return;
     }
@@ -450,17 +619,11 @@ repairForm.addEventListener(
 
     if (!description) {
 
-      alert(
-        "請填寫故障描述"
-      );
+      alert("請填寫故障描述");
 
       return;
     }
 
-
-    // ====================================
-    // 圖片數量再次確認
-    // ====================================
 
     const files =
       Array.from(
@@ -481,10 +644,6 @@ repairForm.addEventListener(
     }
 
 
-    // ====================================
-    // 鎖定按鈕
-    // ====================================
-
     submitButton.disabled =
       true;
 
@@ -494,20 +653,11 @@ repairForm.addEventListener(
 
     try {
 
-
-      // ==================================
-      // 建立 FormData
-      // ==================================
-
       const formData =
         new FormData(
           repairForm
         );
 
-
-      // ==================================
-      // LINE WORKS 使用者
-      // ==================================
 
       formData.append(
         "reporterId",
@@ -521,16 +671,6 @@ repairForm.addEventListener(
       );
 
 
-      console.log(
-        "Submitting repair as:",
-        currentUser
-      );
-
-
-      // ==================================
-      // 呼叫 Render API
-      // ==================================
-
       const response =
         await fetch(
           "/api/repairs",
@@ -541,20 +681,8 @@ repairForm.addEventListener(
         );
 
 
-      let result;
-
-
-      try {
-
-        result =
-          await response.json();
-
-      } catch {
-
-        throw new Error(
-          "伺服器回傳格式錯誤"
-        );
-      }
+      const result =
+        await response.json();
 
 
       if (!response.ok) {
@@ -566,27 +694,20 @@ repairForm.addEventListener(
       }
 
 
-      // ==================================
-      // 成功
-      // ==================================
-
       alert(
         `報修成功！\n案件編號：${result.ticketNumber}`
       );
 
 
-      // 清空表單
       repairForm.reset();
 
+      imagePreview.innerHTML = "";
 
-      // 清空圖片
-      imagePreview.innerHTML =
-        "";
+      repairsLoaded = false;
 
 
-      // LINE WORKS 使用者保持登入
-      displayUserName.textContent =
-        currentUser.userName;
+      // 報修成功後直接顯示案件清單
+      showMyRepairsView();
 
 
     } catch (error) {
@@ -611,4 +732,491 @@ repairForm.addEventListener(
         "送出報修";
     }
   }
+);
+
+
+// ========================================
+// 查詢我的報修案件
+// ========================================
+
+async function loadMyRepairs() {
+
+  if (!currentUser) {
+
+    showRepairsError(
+      "尚未取得 LINE WORKS 使用者資訊"
+    );
+
+    return;
+  }
+
+
+  repairsLoading.style.display =
+    "block";
+
+  repairsError.style.display =
+    "none";
+
+  repairsEmpty.style.display =
+    "none";
+
+  repairsList.innerHTML =
+    "";
+
+  refreshRepairsButton.disabled =
+    true;
+
+  refreshRepairsButton.textContent =
+    "查詢中...";
+
+
+  try {
+
+    const userId =
+      encodeURIComponent(
+        currentUser.userId
+      );
+
+
+    const response =
+      await fetch(
+        `/api/repairs/my?userId=${userId}`
+      );
+
+
+    const result =
+      await response.json();
+
+
+    if (!response.ok) {
+
+      throw new Error(
+        result.message ||
+        "無法取得報修案件"
+      );
+    }
+
+
+    currentRepairs =
+      result.repairs || [];
+
+
+    repairsLoaded = true;
+
+
+    if (
+      currentRepairs.length === 0
+    ) {
+
+      repairsEmpty.style.display =
+        "block";
+
+      return;
+    }
+
+
+    renderRepairs(
+      currentRepairs
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Load repairs error:",
+      error
+    );
+
+
+    showRepairsError(
+      `案件查詢失敗：${error.message}`
+    );
+
+
+  } finally {
+
+    repairsLoading.style.display =
+      "none";
+
+    refreshRepairsButton.disabled =
+      false;
+
+    refreshRepairsButton.textContent =
+      "↻ 重新整理";
+  }
+}
+
+
+// ========================================
+// 顯示查詢錯誤
+// ========================================
+
+function showRepairsError(message) {
+
+  repairsError.textContent =
+    message;
+
+  repairsError.style.display =
+    "block";
+
+  repairsLoading.style.display =
+    "none";
+
+  repairsEmpty.style.display =
+    "none";
+}
+
+
+// ========================================
+// 顯示案件卡片
+// ========================================
+
+function renderRepairs(repairs) {
+
+  repairsList.innerHTML =
+    "";
+
+
+  repairs.forEach(
+    (repair) => {
+
+      const card =
+        document.createElement(
+          "article"
+        );
+
+
+      card.className =
+        "repair-card";
+
+
+      const statusClass =
+        getStatusClass(
+          repair.status
+        );
+
+
+      const staffNames =
+        (
+          repair.maintenanceStaff ||
+          []
+        )
+          .map(
+            (staff) =>
+              staff.name
+          )
+          .filter(Boolean)
+          .join("、");
+
+
+      card.innerHTML = `
+        <div class="repair-card-header">
+
+          <div>
+            <div class="record-number">
+              案件 #${escapeHtml(repair.recordId)}
+            </div>
+
+            <h3>
+              ${escapeHtml(repair.equipmentName || "未命名設備")}
+            </h3>
+          </div>
+
+          <span class="status-badge ${statusClass}">
+            ${escapeHtml(repair.status || "狀態未設定")}
+          </span>
+
+        </div>
+
+        <div class="repair-card-body">
+
+          <div class="repair-info-row">
+            <span>設備編號</span>
+            <strong>
+              ${escapeHtml(repair.equipmentNumber || "未填寫")}
+            </strong>
+          </div>
+
+          <div class="repair-info-row">
+            <span>所在位置</span>
+            <strong>
+              ${escapeHtml(repair.location || "未填寫")}
+            </strong>
+          </div>
+
+          <div class="repair-info-row">
+            <span>申請日期</span>
+            <strong>
+              ${escapeHtml(formatDate(repair.applicationDate))}
+            </strong>
+          </div>
+
+          <div class="repair-info-row">
+            <span>維修人員</span>
+            <strong>
+              ${escapeHtml(staffNames || "尚未指派")}
+            </strong>
+          </div>
+
+        </div>
+
+        <button
+          class="detail-button"
+          type="button"
+          data-record-id="${escapeHtml(repair.recordId)}"
+        >
+          查看案件詳情
+        </button>
+      `;
+
+
+      const detailButton =
+        card.querySelector(
+          ".detail-button"
+        );
+
+
+      detailButton.addEventListener(
+        "click",
+        () => {
+
+          showRepairDetail(
+            repair.recordId
+          );
+        }
+      );
+
+
+      repairsList.appendChild(
+        card
+      );
+    }
+  );
+}
+
+
+// ========================================
+// 顯示案件詳情
+// ========================================
+
+function showRepairDetail(recordId) {
+
+  const repair =
+    currentRepairs.find(
+      (item) =>
+        String(item.recordId) ===
+        String(recordId)
+    );
+
+
+  if (!repair) {
+
+    alert("找不到案件資料");
+
+    return;
+  }
+
+
+  const staffNames =
+    (
+      repair.maintenanceStaff ||
+      []
+    )
+      .map(
+        (staff) =>
+          staff.name
+      )
+      .filter(Boolean)
+      .join("、");
+
+
+  const statusClass =
+    getStatusClass(
+      repair.status
+    );
+
+
+  detailTitle.textContent =
+    `案件 #${repair.recordId}`;
+
+
+  repairDetailContent.innerHTML = `
+
+    <div class="detail-status">
+
+      <span class="status-badge ${statusClass}">
+        ${escapeHtml(repair.status || "狀態未設定")}
+      </span>
+
+    </div>
+
+
+    <div class="detail-section">
+
+      <h3>設備資訊</h3>
+
+      ${detailRow(
+        "設備類別",
+        repair.equipmentCategory
+      )}
+
+      ${detailRow(
+        "設備編號",
+        repair.equipmentNumber
+      )}
+
+      ${detailRow(
+        "設備名稱",
+        repair.equipmentName
+      )}
+
+      ${detailRow(
+        "所在位置",
+        repair.location
+      )}
+
+    </div>
+
+
+    <div class="detail-section">
+
+      <h3>故障資訊</h3>
+
+      <div class="detail-text">
+        ${escapeHtml(repair.description || "未填寫")}
+      </div>
+
+      <div class="photo-count">
+        故障照片：${escapeHtml(repair.photoCount || 0)} 張
+      </div>
+
+    </div>
+
+
+    <div class="detail-section">
+
+      <h3>維修資訊</h3>
+
+      ${detailRow(
+        "維修人員",
+        staffNames || "尚未指派"
+      )}
+
+      ${detailRow(
+        "預計完成日期",
+        formatDate(
+          repair.expectedCompletionDate
+        )
+      )}
+
+      ${detailRow(
+        "實際完成日期",
+        formatDate(
+          repair.actualCompletionDate
+        )
+      )}
+
+      <div class="detail-label">
+        維修結果
+      </div>
+
+      <div class="detail-text">
+        ${escapeHtml(repair.maintenanceResult || "尚無維修結果")}
+      </div>
+
+    </div>
+
+
+    <div class="detail-section">
+
+      <h3>申請資訊</h3>
+
+      ${detailRow(
+        "申請日期",
+        formatDate(
+          repair.applicationDate
+        )
+      )}
+
+    </div>
+  `;
+
+
+  repairDetailModal.style.display =
+    "flex";
+
+  document.body.classList.add(
+    "modal-open"
+  );
+}
+
+
+// ========================================
+// 案件詳情單列
+// ========================================
+
+function detailRow(label, value) {
+
+  return `
+    <div class="detail-row">
+      <span>${escapeHtml(label)}</span>
+      <strong>
+        ${escapeHtml(value || "未填寫")}
+      </strong>
+    </div>
+  `;
+}
+
+
+// ========================================
+// 關閉案件詳情
+// ========================================
+
+function closeRepairDetail() {
+
+  repairDetailModal.style.display =
+    "none";
+
+  document.body.classList.remove(
+    "modal-open"
+  );
+}
+
+
+closeDetailButton.addEventListener(
+  "click",
+  closeRepairDetail
+);
+
+
+repairDetailModal
+  .querySelector(".modal-overlay")
+  .addEventListener(
+    "click",
+    closeRepairDetail
+  );
+
+
+// ========================================
+// 重新整理案件
+// ========================================
+
+refreshRepairsButton.addEventListener(
+  "click",
+  () => {
+
+    repairsLoaded = false;
+
+    loadMyRepairs();
+  }
+);
+
+
+// ========================================
+// 啟動 WOFF
+// ========================================
+
+window.addEventListener(
+  "load",
+  initializeWOFF
 );
