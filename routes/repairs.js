@@ -4,12 +4,21 @@ const multer = require("multer");
 const {
   createRepair,
   getMyRepairs
-} = require("../services/kintoneService");
+} = require(
+  "../services/kintoneService"
+);
+
+const {
+  sendTextMessage
+} = require(
+  "../services/lineworksBotService"
+);
 
 
 const router = express.Router();
 
 const MAX_FILES = 3;
+
 const MAX_FILE_SIZE =
   10 * 1024 * 1024;
 
@@ -30,8 +39,11 @@ const upload = multer({
     multer.memoryStorage(),
 
   limits: {
-    fileSize: MAX_FILE_SIZE,
-    files: MAX_FILES
+    fileSize:
+      MAX_FILE_SIZE,
+
+    files:
+      MAX_FILES
   },
 
   fileFilter: (
@@ -53,13 +65,127 @@ const upload = multer({
       );
     }
 
-    callback(null, true);
+
+    callback(
+      null,
+      true
+    );
   }
 });
 
 
 // ========================================
+// Bot 報修成功通知
+// ========================================
+
+async function notifyRepairCreated({
+  reporterId,
+  reporterName,
+  recordId,
+  equipmentCategory,
+  equipmentNumber,
+  equipmentName,
+  location
+}) {
+
+  if (!reporterId) {
+
+    console.warn(
+      "Repair Bot notification skipped: missing reporterId"
+    );
+
+    return {
+      success: false,
+      skipped: true
+    };
+  }
+
+
+  const messageLines = [
+
+    "🔧 報修案件已建立",
+
+    "",
+
+    `案件編號：#${recordId}`,
+
+    `報修人：${reporterName || "未設定"}`,
+
+    `設備類別：${equipmentCategory || "未設定"}`,
+
+    `設備名稱：${equipmentName || "未設定"}`,
+
+    `設備編號：${equipmentNumber || "未填寫"}`,
+
+    `所在位置：${location || "未設定"}`,
+
+    "目前狀態：待分派工程師處理",
+
+    "",
+
+    "您的報修已成功受理。",
+
+    "您可以進入「設備報修系統」查看最新處理進度。"
+  ];
+
+
+  const message =
+    messageLines.join("\n");
+
+
+  try {
+
+    await sendTextMessage(
+      reporterId,
+      message
+    );
+
+
+    console.log(
+      "Repair created Bot notification sent:",
+      {
+        recordId,
+        reporterId
+      }
+    );
+
+
+    return {
+      success: true
+    };
+
+
+  } catch (error) {
+
+    /*
+      很重要：
+      kintone 案件已成功建立時，
+      Bot 發送失敗不應讓整個報修 API 回傳失敗。
+    */
+
+    console.error(
+      "Repair created Bot notification failed:",
+      {
+        recordId,
+        reporterId,
+        message:
+          error.message
+      }
+    );
+
+
+    return {
+      success: false,
+      error:
+        error.message
+    };
+  }
+}
+
+
+// ========================================
 // POST /api/repairs
+// 建立報修案件
 // ========================================
 
 router.post(
@@ -70,7 +196,11 @@ router.post(
     MAX_FILES
   ),
 
-  async (req, res, next) => {
+  async (
+    req,
+    res,
+    next
+  ) => {
 
     try {
 
@@ -85,23 +215,27 @@ router.post(
       } = req.body;
 
 
-      // ------------------------------
-      // 必填檢查
-      // ------------------------------
+      // ====================================
+      // 必填欄位檢查
+      // ====================================
 
-      if (!equipmentCategory?.trim()) {
+      if (
+        !equipmentCategory?.trim()
+      ) {
 
         return res
           .status(400)
           .json({
             success: false,
             message:
-              "請填寫設備類別"
+              "請選擇設備類別"
           });
       }
 
 
-      if (!equipmentName?.trim()) {
+      if (
+        !equipmentName?.trim()
+      ) {
 
         return res
           .status(400)
@@ -113,19 +247,23 @@ router.post(
       }
 
 
-      if (!location?.trim()) {
+      if (
+        !location?.trim()
+      ) {
 
         return res
           .status(400)
           .json({
             success: false,
             message:
-              "請填寫所在位置"
+              "請選擇所在位置"
           });
       }
 
 
-      if (!description?.trim()) {
+      if (
+        !description?.trim()
+      ) {
 
         return res
           .status(400)
@@ -137,47 +275,103 @@ router.post(
       }
 
 
-      // ------------------------------
-      // kintone 建立案件
-      // ------------------------------
+      if (
+        !reporterId?.trim()
+      ) {
+
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message:
+              "無法取得 LINE WORKS 使用者資訊"
+          });
+      }
+
+
+      // ====================================
+      // 整理輸入資料
+      // ====================================
+
+      const repairData = {
+
+        reporterId:
+          reporterId.trim(),
+
+        reporterName:
+          reporterName?.trim() ||
+          "",
+
+        equipmentCategory:
+          equipmentCategory.trim(),
+
+        equipmentNumber:
+          equipmentNumber?.trim() ||
+          "",
+
+        equipmentName:
+          equipmentName.trim(),
+
+        location:
+          location.trim(),
+
+        description:
+          description.trim()
+      };
+
+
+      // ====================================
+      // 建立 kintone 案件
+      // ====================================
 
       const result =
         await createRepair(
 
-          {
-            reporterId,
-            reporterName,
-
-            equipmentCategory:
-              equipmentCategory.trim(),
-
-            equipmentNumber:
-              equipmentNumber?.trim() ||
-              "",
-
-            equipmentName:
-              equipmentName.trim(),
-
-            location:
-              location.trim(),
-
-            description:
-              description.trim()
-          },
+          repairData,
 
           req.files || []
         );
 
-
-      // ------------------------------
-      // 成功
-      // ------------------------------
 
       console.log(
         "kintone repair created:",
         result
       );
 
+
+      // ====================================
+      // Bot 留下案件建立紀錄
+      // ====================================
+
+      const notification =
+        await notifyRepairCreated({
+
+          reporterId:
+            repairData.reporterId,
+
+          reporterName:
+            repairData.reporterName,
+
+          recordId:
+            result.recordId,
+
+          equipmentCategory:
+            repairData.equipmentCategory,
+
+          equipmentNumber:
+            repairData.equipmentNumber,
+
+          equipmentName:
+            repairData.equipmentName,
+
+          location:
+            repairData.location
+        });
+
+
+      // ====================================
+      // 回傳 WOFF
+      // ====================================
 
       return res
         .status(201)
@@ -192,22 +386,21 @@ router.post(
             result.recordId,
 
           message:
-            "報修案件已建立"
+            "報修案件已建立",
 
+          botNotificationSent:
+            notification.success
         });
 
 
     } catch (error) {
-
-      // 把 kintone 錯誤寫進
-      // Render Logs，方便我們 Debug
 
       if (
         error.response?.data
       ) {
 
         console.error(
-          "kintone API error:",
+          "kintone repair API error:",
           error.response.data
         );
 
@@ -219,20 +412,26 @@ router.post(
         );
       }
 
+
       next(error);
     }
   }
 );
 
+
 // ========================================
 // GET /api/repairs/my
-// 查詢目前使用者建立的報修案件
+// 查詢目前使用者建立的案件
 // ========================================
 
 router.get(
   "/my",
 
-  async (req, res, next) => {
+  async (
+    req,
+    res,
+    next
+  ) => {
 
     try {
 
@@ -252,12 +451,6 @@ router.get(
       }
 
 
-      console.log(
-        "Get my repairs:",
-        lineworksUserId
-      );
-
-
       const repairs =
         await getMyRepairs(
           lineworksUserId
@@ -271,14 +464,15 @@ router.get(
         count:
           repairs.length,
 
-        repairs:
-          repairs
+        repairs
       });
 
 
     } catch (error) {
 
-      if (error.response?.data) {
+      if (
+        error.response?.data
+      ) {
 
         console.error(
           "kintone query error:",
@@ -298,5 +492,6 @@ router.get(
     }
   }
 );
+
 
 module.exports = router;
