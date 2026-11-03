@@ -2,7 +2,8 @@ const express = require("express");
 const multer = require("multer");
 
 const {
-  createRepair
+  createRepair,
+  getMyRepairs
 } = require("../services/kintoneService");
 
 
@@ -223,5 +224,79 @@ router.post(
   }
 );
 
+// ========================================
+// GET /api/repairs/my
+// 查詢目前使用者建立的報修案件
+// ========================================
+
+router.get(
+  "/my",
+
+  async (req, res, next) => {
+
+    try {
+
+      const lineworksUserId =
+        req.query.userId;
+
+
+      if (!lineworksUserId) {
+
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message:
+              "缺少 LINE WORKS User ID"
+          });
+      }
+
+
+      console.log(
+        "Get my repairs:",
+        lineworksUserId
+      );
+
+
+      const repairs =
+        await getMyRepairs(
+          lineworksUserId
+        );
+
+
+      return res.json({
+
+        success: true,
+
+        count:
+          repairs.length,
+
+        repairs:
+          repairs
+      });
+
+
+    } catch (error) {
+
+      if (error.response?.data) {
+
+        console.error(
+          "kintone query error:",
+          error.response.data
+        );
+
+      } else {
+
+        console.error(
+          "Get repairs error:",
+          error
+        );
+      }
+
+
+      next(error);
+    }
+  }
+);
 
 module.exports = router;
