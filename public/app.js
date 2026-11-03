@@ -61,9 +61,10 @@ async function initializeWOFF() {
     // 1. 初始化 WOFF
     // ------------------------------------
 
-    await woff.init({
-      woffId: WOFF_ID
-    });
+await woff.init({
+  woffId: WOFF_ID,
+  scope: "openid user.profile.read"
+});
 
 
     console.log(
@@ -179,37 +180,38 @@ async function initializeWOFF() {
     );
 
 
-  } catch (error) {
+} catch (error) {
 
-    console.error(
-      "WOFF initialization error:",
-      error
-    );
+  console.error(
+    "WOFF initialization error:",
+    error
+  );
 
+  currentUser = null;
 
-    currentUser = null;
+  userLoading.style.display = "none";
+  userInfo.style.display = "none";
+  userError.style.display = "block";
 
+  const errorCode =
+    error?.code ||
+    error?.error ||
+    "UNKNOWN";
 
-    userLoading.style.display =
-      "none";
+  const errorMessage =
+    error?.message ||
+    JSON.stringify(error);
 
-    userInfo.style.display =
-      "none";
+  userError.innerHTML =
+    `LINE WORKS 使用者資訊取得失敗<br>
+     Error Code：${errorCode}<br>
+     Error Message：${errorMessage}`;
 
-    userError.style.display =
-      "block";
+  submitButton.disabled = true;
 
-
-    userError.textContent =
-      "LINE WORKS 使用者資訊取得失敗，請從 LINE WORKS 開啟此報修頁面。";
-
-
-    submitButton.disabled =
-      true;
-
-    submitButton.textContent =
-      "無法取得登入資訊";
-  }
+  submitButton.textContent =
+    "無法取得登入資訊";
+}
 }
 
 
