@@ -1,10 +1,16 @@
 const express = require("express");
 const multer = require("multer");
 
+const {
+  createRepair
+} = require("../services/kintoneService");
+
+
 const router = express.Router();
 
 const MAX_FILES = 3;
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_FILE_SIZE =
+  10 * 1024 * 1024;
 
 const ALLOWED_TYPES = [
   "image/jpeg",
@@ -14,21 +20,30 @@ const ALLOWED_TYPES = [
 
 
 // ========================================
-// Multer 設定
+// Multer
 // ========================================
 
 const upload = multer({
 
-  storage: multer.memoryStorage(),
+  storage:
+    multer.memoryStorage(),
 
   limits: {
     fileSize: MAX_FILE_SIZE,
     files: MAX_FILES
   },
 
-  fileFilter: (req, file, callback) => {
+  fileFilter: (
+    req,
+    file,
+    callback
+  ) => {
 
-    if (!ALLOWED_TYPES.includes(file.mimetype)) {
+    if (
+      !ALLOWED_TYPES.includes(
+        file.mimetype
+      )
+    ) {
 
       return callback(
         new Error(
@@ -49,7 +64,10 @@ const upload = multer({
 router.post(
   "/",
 
-  upload.array("images", MAX_FILES),
+  upload.array(
+    "images",
+    MAX_FILES
+  ),
 
   async (req, res, next) => {
 
@@ -66,103 +84,139 @@ router.post(
       } = req.body;
 
 
-      // ==========================
-      // 必填欄位檢查
-      // ==========================
+      // ------------------------------
+      // 必填檢查
+      // ------------------------------
 
       if (!equipmentCategory?.trim()) {
 
-        return res.status(400).json({
-          success: false,
-          message: "請填寫設備類別"
-        });
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message:
+              "請填寫設備類別"
+          });
       }
 
 
       if (!equipmentName?.trim()) {
 
-        return res.status(400).json({
-          success: false,
-          message: "請填寫設備名稱"
-        });
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message:
+              "請填寫設備名稱"
+          });
       }
 
 
       if (!location?.trim()) {
 
-        return res.status(400).json({
-          success: false,
-          message: "請填寫所在位置"
-        });
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message:
+              "請填寫所在位置"
+          });
       }
 
 
       if (!description?.trim()) {
 
-        return res.status(400).json({
-          success: false,
-          message: "請填寫故障描述"
-        });
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message:
+              "請填寫故障描述"
+          });
       }
 
 
-      // ==========================
-      // Render Log
-      // ==========================
+      // ------------------------------
+      // kintone 建立案件
+      // ------------------------------
+
+      const result =
+        await createRepair(
+
+          {
+            reporterId,
+            reporterName,
+
+            equipmentCategory:
+              equipmentCategory.trim(),
+
+            equipmentNumber:
+              equipmentNumber?.trim() ||
+              "",
+
+            equipmentName:
+              equipmentName.trim(),
+
+            location:
+              location.trim(),
+
+            description:
+              description.trim()
+          },
+
+          req.files || []
+        );
+
+
+      // ------------------------------
+      // 成功
+      // ------------------------------
 
       console.log(
-        "===== New Repair Request ====="
-      );
-
-      console.log({
-        reporterId,
-        reporterName,
-        equipmentCategory,
-        equipmentNumber,
-        equipmentName,
-        location,
-        description
-      });
-
-
-      console.log(
-        "Images:",
-        (req.files || []).map(
-          (file) => ({
-            name: file.originalname,
-            type: file.mimetype,
-            size: file.size
-          })
-        )
+        "kintone repair created:",
+        result
       );
 
 
-      // ==========================
-      // 測試案件編號
-      // ==========================
-      // 下一階段改成
-      // kintone Record Number
+      return res
+        .status(201)
+        .json({
 
-      const ticketNumber =
-        `TEST-${Date.now()}`;
+          success: true,
 
+          ticketNumber:
+            result.recordId,
 
-      return res.status(201).json({
+          recordId:
+            result.recordId,
 
-        success: true,
+          message:
+            "報修案件已建立"
 
-        ticketNumber,
-
-        message:
-          "報修資料已成功接收",
-
-        receivedImages:
-          req.files?.length || 0
-
-      });
+        });
 
 
     } catch (error) {
+
+      // 把 kintone 錯誤寫進
+      // Render Logs，方便我們 Debug
+
+      if (
+        error.response?.data
+      ) {
+
+        console.error(
+          "kintone API error:",
+          error.response.data
+        );
+
+      } else {
+
+        console.error(
+          "Repair API error:",
+          error
+        );
+      }
 
       next(error);
     }
