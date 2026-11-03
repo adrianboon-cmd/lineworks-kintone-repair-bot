@@ -88,7 +88,7 @@ main {
 
 .navigation {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   margin-bottom: 18px;
   padding: 5px;
@@ -567,5 +567,76 @@ input[type="file"] {
     max-width: 48%;
     white-space: normal;
     text-align: center;
+  }
+}
+/* ========================================
+   工程師維修任務
+======================================== */
+
+#engineerRepairsList {
+  display: grid;
+  gap: 13px;
+}
+
+.engineer-card {
+  border-left: 4px solid #1877d2;
+}
+
+.engineer-description {
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px solid #edf0f2;
+}
+
+.engineer-description span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.engineer-description p {
+  margin: 0;
+  color: #343b42;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.engineer-case-summary {
+  margin-top: 16px;
+  padding: 14px;
+  background: #f8f9fa;
+  border-radius: 10px;
+}
+
+#engineerUpdateForm {
+  margin-top: 16px;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+#engineerUpdateForm label:first-of-type {
+  margin-top: 0;
+}
+
+
+/* 三個頁籤的手機文字稍微縮小 */
+
+@media (max-width: 480px) {
+
+  .navigation {
+    gap: 4px;
+    padding: 4px;
+  }
+
+  .navigation-button {
+    padding: 11px 4px;
+    font-size: 12px;
+    line-height: 1.35;
   }
 }
