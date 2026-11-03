@@ -1,0 +1,141 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #f4f6f8;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Noto Sans TC",
+    sans-serif;
+  color: #222;
+}
+
+main {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 24px 18px 40px;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: 26px;
+  text-align: center;
+  color: #222;
+}
+
+main > p {
+  margin: 0 0 24px;
+  text-align: center;
+  color: #666;
+  font-size: 15px;
+}
+
+form {
+  background: #fff;
+  padding: 22px 18px;
+  border-radius: 14px;
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.08);
+}
+
+label {
+  display: block;
+  margin-top: 18px;
+  margin-bottom: 7px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+label:first-child {
+  margin-top: 0;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 12px 13px;
+  border: 1px solid #d6d9dd;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 16px;
+  color: #222;
+  outline: none;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #00c300;
+  box-shadow: 0 0 0 2px rgba(0, 195, 0, 0.12);
+}
+
+textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+input[type="file"] {
+  padding: 11px;
+  background: #f8f9fa;
+}
+
+#imagePreview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.preview-image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e2e2e2;
+}
+
+button[type="submit"] {
+  width: 100%;
+  margin-top: 26px;
+  padding: 14px;
+
+  border: none;
+  border-radius: 9px;
+
+  background: #00c300;
+  color: #fff;
+
+  font-size: 17px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+button[type="submit"]:active {
+  background: #00a800;
+}
+
+button[type="submit"]:disabled {
+  background: #a6dca6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  main {
+    padding: 18px 14px 32px;
+  }
+
+  form {
+    padding: 20px 16px;
+  }
+
+  h1 {
+    font-size: 24px;
+  }
+}
