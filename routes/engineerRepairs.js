@@ -2,7 +2,8 @@ const express = require("express");
 
 const {
   getAssignedRepairs,
-  updateRepairProgress
+  updateRepairProgress,
+  downloadRepairPhoto
 } = require(
   "../services/engineerService"
 );
@@ -194,6 +195,69 @@ router.put(
     }
   }
 );
+// ========================================
+// GET /api/engineer-repairs/photo
+// 顯示 kintone 故障照片
+// ========================================
 
+router.get(
+  "/photo",
+
+  async (req, res, next) => {
+
+    try {
+
+      const fileKey =
+        req.query.fileKey;
+
+
+      if (!fileKey) {
+
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message:
+              "缺少圖片 File Key"
+          });
+      }
+
+
+      const file =
+        await downloadRepairPhoto(
+          fileKey
+        );
+
+
+      res.setHeader(
+        "Content-Type",
+        file.contentType
+      );
+
+
+      res.setHeader(
+        "Cache-Control",
+        "private, max-age=300"
+      );
+
+
+      return res.send(
+        file.data
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        "Download repair photo error:",
+        error.response?.data ||
+        error
+      );
+
+
+      next(error);
+    }
+  }
+);
 
 module.exports = router;
