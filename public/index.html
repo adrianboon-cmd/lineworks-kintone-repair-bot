@@ -527,8 +527,30 @@
 
 </div>
   
-  <script src="/app.js"></script>
+<script>
+  window.appJsStarted = false;
+</script>
 
+<script src="/app.js"></script>
+
+<script>
+  setTimeout(() => {
+
+    if (!window.appJsStarted) {
+
+      const loading =
+        document.getElementById("userLoading");
+
+      if (loading) {
+
+        loading.innerHTML =
+          "❌ app.js 沒有正常啟動<br><br>" +
+          "請檢查 JavaScript 語法錯誤";
+      }
+    }
+
+  }, 3000);
+</script>
 </body>
 
 </html>
