@@ -110,52 +110,57 @@ async function createRepair(
   // 3. kintone Record
   // ------------------------------
 
-  const record = {
+const record = {
 
-    "申請人": {
-      value:
-        repairData.reporterName ||
-        "測試員工"
-    },
+  "申請人": {
+    value:
+      repairData.reporterName ||
+      ""
+  },
 
-    application_date: {
-      value: applicationDate
-    },
+  lineworks_user_id: {
+    value:
+      repairData.reporterId ||
+      ""
+  },
 
-    equipment_category: {
-      value:
-        repairData.equipmentCategory
-    },
+  application_date: {
+    value: applicationDate
+  },
 
-    equipment_number: {
-      value:
-        repairData.equipmentNumber || ""
-    },
+  equipment_category: {
+    value:
+      repairData.equipmentCategory
+  },
 
-    equipment_name: {
-      value:
-        repairData.equipmentName
-    },
+  equipment_number: {
+    value:
+      repairData.equipmentNumber || ""
+  },
 
-    location: {
-      value:
-        repairData.location
-    },
+  equipment_name: {
+    value:
+      repairData.equipmentName
+  },
 
-    fault_description: {
-      value:
-        repairData.description
-    },
+  location: {
+    value:
+      repairData.location
+  },
 
-    fault_photo: {
-      value: uploadedFiles
-    },
+  fault_description: {
+    value:
+      repairData.description
+  },
 
-    "處理狀態": {
-      value: "待分派工程師處理"
-    }
-  };
+  fault_photo: {
+    value: uploadedFiles
+  },
 
+  "處理狀態": {
+    value: "待分派工程師處理"
+  }
+};
 
   // ------------------------------
   // 4. 建立 kintone Record
