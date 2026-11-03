@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+  <title>設備報修</title>
+</head>
+
+<body>
+  <main>
+    <h1>🔧 設備報修</h1>
+    <p>請填寫設備故障資訊</p>
+
+    <form id="repairForm">
+
+      <label for="equipmentName">設備名稱 *</label>
+      <input
+        id="equipmentName"
+        name="equipmentName"
+        type="text"
+        required
+      >
+
+      <label for="equipmentNumber">設備編號</label>
+      <input
+        id="equipmentNumber"
+        name="equipmentNumber"
+        type="text"
+      >
+
+      <label for="description">故障說明 *</label>
+      <textarea
+        id="description"
+        name="description"
+        required
+      ></textarea>
+
+      <label for="priority">緊急程度</label>
+      <select id="priority" name="priority">
+        <option value="一般">一般</option>
+        <option value="緊急">緊急</option>
+        <option value="設備停機">設備停機</option>
+      </select>
+
+      <label for="images">故障圖片</label>
+      <input
+        id="images"
+        name="images"
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        capture="environment"
+        multiple
+      >
+
+      <div id="imagePreview"></div>
+
+      <button type="submit">
+        送出報修
+      </button>
+
+    </form>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
