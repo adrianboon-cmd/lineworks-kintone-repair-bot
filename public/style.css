@@ -139,3 +139,23 @@ button[type="submit"]:disabled {
     font-size: 24px;
   }
 }
+#userSection {
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  background: #eef9ef;
+  border: 1px solid #cbe8cd;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+#userInfo {
+  color: #187c24;
+}
+
+#userLoading {
+  color: #666;
+}
+
+#userError {
+  line-height: 1.5;
+}
