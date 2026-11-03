@@ -1,0 +1,19 @@
+{
+  "name": "lineworks-kintone-repair-bot",
+  "version": "1.0.0",
+  "description": "LINE WORKS x kintone repair request bot",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "axios": "^1.13.2",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "form-data": "^4.0.4",
+    "multer": "^2.0.2"
+  }
+}
