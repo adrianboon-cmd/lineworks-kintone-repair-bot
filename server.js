@@ -9,6 +9,8 @@ const repairRoutes =
 const engineerRepairRoutes =
   require("./routes/engineerRepairs");
 
+const botTestRoutes =
+  require("./routes/botTest");
 
 const app = express();
 
@@ -33,6 +35,10 @@ app.use(
 // ========================================
 // API Routes
 // ========================================
+app.use(
+  "/api/bot-test",
+  botTestRoutes
+);
 
 // 報修與我的報修案件
 app.use(
