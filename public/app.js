@@ -1,24 +1,28 @@
 window.appJsStarted = true;
 
+
+// ========================================
+// 基本設定
+// ========================================
+
 const WOFF_ID =
   "9JL2mUAWcP-q0Qx-vEpTNg";
 
+const MAX_FILES = 3;
+
+const MAX_FILE_SIZE =
+  10 * 1024 * 1024;
+
+const ALLOWED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp"
+];
+
 
 // ========================================
-// DOM
+// DOM：LINE WORKS 使用者
 // ========================================
-
-const repairForm =
-  document.getElementById("repairForm");
-
-const imageInput =
-  document.getElementById("images");
-
-const imagePreview =
-  document.getElementById("imagePreview");
-
-const submitButton =
-  document.getElementById("submitButton");
 
 const userLoading =
   document.getElementById("userLoading");
@@ -35,58 +39,116 @@ const displayUserName =
 const navigation =
   document.getElementById("navigation");
 
+
+// ========================================
+// DOM：三個頁籤
+// ========================================
+
 const createViewButton =
-  document.getElementById("createViewButton");
+  document.getElementById(
+    "createViewButton"
+  );
 
 const myRepairsViewButton =
-  document.getElementById("myRepairsViewButton");
-
-const createRepairView =
-  document.getElementById("createRepairView");
-
-const myRepairsView =
-  document.getElementById("myRepairsView");
-
-const refreshRepairsButton =
-  document.getElementById("refreshRepairsButton");
-
-const repairsLoading =
-  document.getElementById("repairsLoading");
-
-const repairsError =
-  document.getElementById("repairsError");
-
-const repairsEmpty =
-  document.getElementById("repairsEmpty");
-
-const repairsList =
-  document.getElementById("repairsList");
-
-const repairDetailModal =
-  document.getElementById("repairDetailModal");
-
-const repairDetailContent =
-  document.getElementById("repairDetailContent");
-
-const detailTitle =
-  document.getElementById("detailTitle");
-
-const closeDetailButton =
-  document.getElementById("closeDetailButton");
-
-// ========================================
-// 工程師任務 DOM
-// ========================================
+  document.getElementById(
+    "myRepairsViewButton"
+  );
 
 const engineerViewButton =
   document.getElementById(
     "engineerViewButton"
   );
 
+const createRepairView =
+  document.getElementById(
+    "createRepairView"
+  );
+
+const myRepairsView =
+  document.getElementById(
+    "myRepairsView"
+  );
+
 const engineerView =
   document.getElementById(
     "engineerView"
   );
+
+
+// ========================================
+// DOM：建立報修
+// ========================================
+
+const repairForm =
+  document.getElementById("repairForm");
+
+const imageInput =
+  document.getElementById("images");
+
+const imagePreview =
+  document.getElementById(
+    "imagePreview"
+  );
+
+const submitButton =
+  document.getElementById(
+    "submitButton"
+  );
+
+
+// ========================================
+// DOM：我的案件
+// ========================================
+
+const refreshRepairsButton =
+  document.getElementById(
+    "refreshRepairsButton"
+  );
+
+const repairsLoading =
+  document.getElementById(
+    "repairsLoading"
+  );
+
+const repairsError =
+  document.getElementById(
+    "repairsError"
+  );
+
+const repairsEmpty =
+  document.getElementById(
+    "repairsEmpty"
+  );
+
+const repairsList =
+  document.getElementById(
+    "repairsList"
+  );
+
+const repairDetailModal =
+  document.getElementById(
+    "repairDetailModal"
+  );
+
+const repairDetailContent =
+  document.getElementById(
+    "repairDetailContent"
+  );
+
+const detailTitle =
+  document.getElementById(
+    "detailTitle"
+  );
+
+const closeDetailButton =
+  document.getElementById(
+    "closeDetailButton"
+  );
+
+
+// ========================================
+// DOM：工程師維修任務
+// ========================================
 
 const refreshEngineerButton =
   document.getElementById(
@@ -167,24 +229,10 @@ const closeEngineerModalButton =
   document.getElementById(
     "closeEngineerModalButton"
   );
-// ========================================
-// 圖片限制
-// ========================================
-
-const MAX_FILES = 3;
-
-const MAX_FILE_SIZE =
-  10 * 1024 * 1024;
-
-const ALLOWED_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/webp"
-];
 
 
 // ========================================
-// 狀態
+// 應用程式狀態
 // ========================================
 
 let currentUser = null;
@@ -197,8 +245,9 @@ let engineerRepairs = [];
 
 let engineerRepairsLoaded = false;
 
+
 // ========================================
-// HTML 安全處理
+// 共用：HTML 安全處理
 // ========================================
 
 function escapeHtml(value) {
@@ -213,7 +262,7 @@ function escapeHtml(value) {
 
 
 // ========================================
-// 日期顯示
+// 共用：日期顯示
 // ========================================
 
 function formatDate(value) {
@@ -226,25 +275,56 @@ function formatDate(value) {
     String(value).split("-");
 
   if (parts.length !== 3) {
-    return value;
+    return String(value);
   }
 
-  return `${parts[0]}/${parts[1]}/${parts[2]}`;
+  return (
+    `${parts[0]}/` +
+    `${parts[1]}/` +
+    `${parts[2]}`
+  );
 }
 
 
 // ========================================
-// 狀態樣式
+// 共用：台北日期
+// ========================================
+
+function getTaipeiDate() {
+
+  return new Intl.DateTimeFormat(
+    "en-CA",
+    {
+      timeZone: "Asia/Taipei",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }
+  ).format(new Date());
+}
+
+
+// ========================================
+// 共用：案件狀態樣式
 // ========================================
 
 function getStatusClass(status) {
 
   const statusMap = {
-    "待分派工程師處理": "status-waiting",
-    "已指派工程師": "status-assigned",
-    "維修中": "status-progress",
-    "無法維修": "status-unrepairable",
-    "已完成": "status-completed"
+    "待分派工程師處理":
+      "status-waiting",
+
+    "已指派工程師":
+      "status-assigned",
+
+    "維修中":
+      "status-progress",
+
+    "無法維修":
+      "status-unrepairable",
+
+    "已完成":
+      "status-completed"
   };
 
   return (
@@ -255,29 +335,73 @@ function getStatusClass(status) {
 
 
 // ========================================
+// 共用：案件詳情列
+// ========================================
+
+function detailRow(label, value) {
+
+  return `
+    <div class="detail-row">
+
+      <span>
+        ${escapeHtml(label)}
+      </span>
+
+      <strong>
+        ${escapeHtml(value || "未填寫")}
+      </strong>
+
+    </div>
+  `;
+}
+
+
+// ========================================
+// 共用：取得 API JSON
+// ========================================
+
+async function readJsonResponse(
+  response
+) {
+
+  try {
+
+    return await response.json();
+
+  } catch {
+
+    throw new Error(
+      "伺服器回傳格式錯誤"
+    );
+  }
+}
+
+
+// ========================================
 // WOFF 初始化
 // ========================================
+
 async function initializeWOFF() {
 
-  const timeoutId = setTimeout(
-    () => {
+  const timeoutId =
+    setTimeout(
+      () => {
 
-      if (!currentUser) {
+        if (!currentUser) {
 
-        userLoading.style.display =
-          "none";
+          userLoading.style.display =
+            "none";
 
-        userError.style.display =
-          "block";
+          userError.style.display =
+            "block";
 
-        userError.innerHTML =
-          "LINE WORKS 登入初始化逾時。<br>" +
-          "請關閉此頁面後，重新從 LINE WORKS 開啟報修系統。";
-      }
-
-    },
-    10000
-  );
+          userError.innerHTML =
+            "LINE WORKS 登入初始化逾時。<br>" +
+            "請關閉此頁面後，重新從 LINE WORKS 開啟報修系統。";
+        }
+      },
+      10000
+    );
 
 
   try {
@@ -287,9 +411,15 @@ async function initializeWOFF() {
     );
 
 
-    // ==============================
-    // WOFF 初始化
-    // ==============================
+    if (
+      typeof woff === "undefined"
+    ) {
+
+      throw new Error(
+        "WOFF SDK 尚未載入"
+      );
+    }
+
 
     await woff.init({
       woffId: WOFF_ID
@@ -302,14 +432,10 @@ async function initializeWOFF() {
 
 
     console.log(
-      "Is in LINE WORKS:",
+      "Is in LINE WORKS client:",
       woff.isInClient()
     );
 
-
-    // ==============================
-    // 取得 Profile
-    // ==============================
 
     console.log(
       "Step 3: getProfile start"
@@ -366,10 +492,6 @@ async function initializeWOFF() {
     );
 
 
-    // ==============================
-    // 顯示使用者
-    // ==============================
-
     displayUserName.textContent =
       currentUser.userName;
 
@@ -394,38 +516,7 @@ async function initializeWOFF() {
       "送出報修";
 
 
-    // ==============================
-    // URL View
-    // ==============================
-
-    const params =
-      new URLSearchParams(
-        window.location.search
-      );
-
-
-    const requestedView =
-      params.get("view");
-
-
-    if (
-      requestedView ===
-      "my-repairs"
-    ) {
-
-      showMyRepairsView();
-
-    } else if (
-      requestedView ===
-      "engineer"
-    ) {
-
-      showEngineerView();
-
-    } else {
-
-      showCreateRepairView();
-    }
+    openRequestedView();
 
 
   } catch (error) {
@@ -469,7 +560,7 @@ async function initializeWOFF() {
 
 
     userError.innerHTML =
-      `LINE WORKS 使用者資訊取得失敗<br><br>` +
+      "LINE WORKS 使用者資訊取得失敗<br><br>" +
       `Error Code：${escapeHtml(errorCode)}<br>` +
       `Error Message：${escapeHtml(errorMessage)}`;
 
@@ -482,92 +573,51 @@ async function initializeWOFF() {
   }
 }
 
-// ========================================
-// 顯示建立報修
-// ========================================
-
-function showCreateRepairView() {
-
-  createRepairView.style.display =
-    "block";
-
-  myRepairsView.style.display =
-    "none";
-
-engineerView.style.display =
-  "none";
-  
-  createViewButton.classList.add(
-    "active"
-  );
-
-  myRepairsViewButton.classList.remove(
-    "active"
-
-  engineerViewButton.classList.remove(
-  "active"
-);
-    
-  );
-
-
-  updateViewParameter("create");
-
-
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
-}
-
 
 // ========================================
-// 顯示我的案件
+// 根據網址顯示指定頁面
 // ========================================
 
-function showMyRepairsView() {
+function openRequestedView() {
 
-  createRepairView.style.display =
-    "none";
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
 
-  myRepairsView.style.display =
-    "block";
 
-  engineerView.style.display =
-  "none";
+  const requestedView =
+    params.get("view");
 
-  createViewButton.classList.remove(
-    "active"
-  );
 
-  myRepairsViewButton.classList.add(
-    "active"
-  );
-  
-engineerViewButton.classList.remove(
-  "active"
-);
-
-  updateViewParameter(
+  if (
+    requestedView ===
     "my-repairs"
-  );
+  ) {
 
+    showMyRepairsView();
 
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
-
-
-  if (!repairsLoaded) {
-
-    loadMyRepairs();
+    return;
   }
+
+
+  if (
+    requestedView ===
+    "engineer"
+  ) {
+
+    showEngineerView();
+
+    return;
+  }
+
+
+  showCreateRepairView();
 }
 
 
 // ========================================
-// 更新網址 view 參數
+// 更新 URL 的 view 參數
 // ========================================
 
 function updateViewParameter(view) {
@@ -602,7 +652,142 @@ function updateViewParameter(view) {
 
 
 // ========================================
-// 功能切換按鈕
+// 顯示：我要報修
+// ========================================
+
+function showCreateRepairView() {
+
+  createRepairView.style.display =
+    "block";
+
+  myRepairsView.style.display =
+    "none";
+
+  engineerView.style.display =
+    "none";
+
+
+  createViewButton.classList.add(
+    "active"
+  );
+
+  myRepairsViewButton.classList.remove(
+    "active"
+  );
+
+  engineerViewButton.classList.remove(
+    "active"
+  );
+
+
+  updateViewParameter(
+    "create"
+  );
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
+
+
+// ========================================
+// 顯示：我的案件
+// ========================================
+
+function showMyRepairsView() {
+
+  createRepairView.style.display =
+    "none";
+
+  myRepairsView.style.display =
+    "block";
+
+  engineerView.style.display =
+    "none";
+
+
+  createViewButton.classList.remove(
+    "active"
+  );
+
+  myRepairsViewButton.classList.add(
+    "active"
+  );
+
+  engineerViewButton.classList.remove(
+    "active"
+  );
+
+
+  updateViewParameter(
+    "my-repairs"
+  );
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+
+  if (!repairsLoaded) {
+
+    loadMyRepairs();
+  }
+}
+
+
+// ========================================
+// 顯示：維修任務
+// ========================================
+
+function showEngineerView() {
+
+  createRepairView.style.display =
+    "none";
+
+  myRepairsView.style.display =
+    "none";
+
+  engineerView.style.display =
+    "block";
+
+
+  createViewButton.classList.remove(
+    "active"
+  );
+
+  myRepairsViewButton.classList.remove(
+    "active"
+  );
+
+  engineerViewButton.classList.add(
+    "active"
+  );
+
+
+  updateViewParameter(
+    "engineer"
+  );
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+
+  if (!engineerRepairsLoaded) {
+
+    loadEngineerRepairs();
+  }
+}
+
+
+// ========================================
+// 三個頁籤事件
 // ========================================
 
 createViewButton.addEventListener(
@@ -616,13 +801,15 @@ myRepairsViewButton.addEventListener(
   showMyRepairsView
 );
 
+
 engineerViewButton.addEventListener(
   "click",
   showEngineerView
 );
 
+
 // ========================================
-// 圖片選擇及預覽
+// 圖片選擇與預覽
 // ========================================
 
 imageInput.addEventListener(
@@ -630,6 +817,7 @@ imageInput.addEventListener(
   () => {
 
     imagePreview.innerHTML = "";
+
 
     const files =
       Array.from(
@@ -665,9 +853,11 @@ imageInput.addEventListener(
           "請使用 JPG、PNG 或 WebP"
         );
 
-        imageInput.value = "";
+        imageInput.value =
+          "";
 
-        imagePreview.innerHTML = "";
+        imagePreview.innerHTML =
+          "";
 
         return;
       }
@@ -682,18 +872,21 @@ imageInput.addEventListener(
           `圖片 ${file.name} 超過 10 MB`
         );
 
-        imageInput.value = "";
+        imageInput.value =
+          "";
 
-        imagePreview.innerHTML = "";
+        imagePreview.innerHTML =
+          "";
 
         return;
       }
 
 
-      const img =
+      const image =
         document.createElement(
           "img"
         );
+
 
       const imageUrl =
         URL.createObjectURL(
@@ -701,17 +894,17 @@ imageInput.addEventListener(
         );
 
 
-      img.src =
+      image.src =
         imageUrl;
 
-      img.alt =
+      image.alt =
         file.name;
 
-      img.className =
+      image.className =
         "preview-image";
 
 
-      img.onload = () => {
+      image.onload = () => {
 
         URL.revokeObjectURL(
           imageUrl
@@ -720,7 +913,7 @@ imageInput.addEventListener(
 
 
       imagePreview.appendChild(
-        img
+        image
       );
     }
   }
@@ -733,6 +926,7 @@ imageInput.addEventListener(
 
 repairForm.addEventListener(
   "submit",
+
   async (event) => {
 
     event.preventDefault();
@@ -741,7 +935,7 @@ repairForm.addEventListener(
     if (!currentUser) {
 
       alert(
-        "尚未取得 LINE WORKS 使用者資訊，請重新開啟報修頁面。"
+        "尚未取得 LINE WORKS 使用者資訊，請重新開啟報修系統。"
       );
 
       return;
@@ -786,7 +980,9 @@ repairForm.addEventListener(
 
     if (!equipmentCategory) {
 
-      alert("請填寫設備類別");
+      alert(
+        "請填寫設備類別"
+      );
 
       return;
     }
@@ -794,7 +990,9 @@ repairForm.addEventListener(
 
     if (!equipmentName) {
 
-      alert("請填寫設備名稱");
+      alert(
+        "請填寫設備名稱"
+      );
 
       return;
     }
@@ -802,7 +1000,9 @@ repairForm.addEventListener(
 
     if (!location) {
 
-      alert("請填寫所在位置");
+      alert(
+        "請填寫所在位置"
+      );
 
       return;
     }
@@ -810,7 +1010,9 @@ repairForm.addEventListener(
 
     if (!description) {
 
-      alert("請填寫故障描述");
+      alert(
+        "請填寫故障描述"
+      );
 
       return;
     }
@@ -873,7 +1075,9 @@ repairForm.addEventListener(
 
 
       const result =
-        await response.json();
+        await readJsonResponse(
+          response
+        );
 
 
       if (!response.ok) {
@@ -892,58 +1096,15 @@ repairForm.addEventListener(
 
       repairForm.reset();
 
-      imagePreview.innerHTML = "";
+      imagePreview.innerHTML =
+        "";
 
-      repairsLoaded = false;
+      repairsLoaded =
+        false;
 
 
-      // 報修成功後直接顯示案件清單
       showMyRepairsView();
-// ========================================
-// 顯示工程師維修任務
-// ========================================
 
-function showEngineerView() {
-
-  createRepairView.style.display =
-    "none";
-
-  myRepairsView.style.display =
-    "none";
-
-  engineerView.style.display =
-    "block";
-
-
-  createViewButton.classList.remove(
-    "active"
-  );
-
-  myRepairsViewButton.classList.remove(
-    "active"
-  );
-
-  engineerViewButton.classList.add(
-    "active"
-  );
-
-
-  updateViewParameter(
-    "engineer"
-  );
-
-
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
-
-
-  if (!engineerRepairsLoaded) {
-
-    loadEngineerRepairs();
-  }
-}
 
     } catch (error) {
 
@@ -1020,7 +1181,9 @@ async function loadMyRepairs() {
 
 
     const result =
-      await response.json();
+      await readJsonResponse(
+        response
+      );
 
 
     if (!response.ok) {
@@ -1036,7 +1199,8 @@ async function loadMyRepairs() {
       result.repairs || [];
 
 
-    repairsLoaded = true;
+    repairsLoaded =
+      true;
 
 
     if (
@@ -1050,7 +1214,7 @@ async function loadMyRepairs() {
     }
 
 
-    renderRepairs(
+    renderMyRepairs(
       currentRepairs
     );
 
@@ -1083,7 +1247,7 @@ async function loadMyRepairs() {
 
 
 // ========================================
-// 顯示查詢錯誤
+// 我的案件錯誤
 // ========================================
 
 function showRepairsError(message) {
@@ -1103,13 +1267,12 @@ function showRepairsError(message) {
 
 
 // ========================================
-// 顯示案件卡片
+// 顯示我的案件
 // ========================================
 
-function renderRepairs(repairs) {
+function renderMyRepairs(repairs) {
 
-  repairsList.innerHTML =
-    "";
+  repairsList.innerHTML = "";
 
 
   repairs.forEach(
@@ -1137,8 +1300,7 @@ function renderRepairs(repairs) {
           []
         )
           .map(
-            (staff) =>
-              staff.name
+            (staff) => staff.name
           )
           .filter(Boolean)
           .join("、");
@@ -1148,6 +1310,7 @@ function renderRepairs(repairs) {
         <div class="repair-card-header">
 
           <div>
+
             <div class="record-number">
               案件 #${escapeHtml(repair.recordId)}
             </div>
@@ -1155,6 +1318,7 @@ function renderRepairs(repairs) {
             <h3>
               ${escapeHtml(repair.equipmentName || "未命名設備")}
             </h3>
+
           </div>
 
           <span class="status-badge ${statusClass}">
@@ -1163,10 +1327,12 @@ function renderRepairs(repairs) {
 
         </div>
 
+
         <div class="repair-card-body">
 
           <div class="repair-info-row">
             <span>設備編號</span>
+
             <strong>
               ${escapeHtml(repair.equipmentNumber || "未填寫")}
             </strong>
@@ -1174,6 +1340,7 @@ function renderRepairs(repairs) {
 
           <div class="repair-info-row">
             <span>所在位置</span>
+
             <strong>
               ${escapeHtml(repair.location || "未填寫")}
             </strong>
@@ -1181,6 +1348,7 @@ function renderRepairs(repairs) {
 
           <div class="repair-info-row">
             <span>申請日期</span>
+
             <strong>
               ${escapeHtml(formatDate(repair.applicationDate))}
             </strong>
@@ -1188,12 +1356,14 @@ function renderRepairs(repairs) {
 
           <div class="repair-info-row">
             <span>維修人員</span>
+
             <strong>
               ${escapeHtml(staffNames || "尚未指派")}
             </strong>
           </div>
 
         </div>
+
 
         <button
           class="detail-button"
@@ -1231,7 +1401,7 @@ function renderRepairs(repairs) {
 
 
 // ========================================
-// 顯示案件詳情
+// 顯示我的案件詳情
 // ========================================
 
 function showRepairDetail(recordId) {
@@ -1246,7 +1416,9 @@ function showRepairDetail(recordId) {
 
   if (!repair) {
 
-    alert("找不到案件資料");
+    alert(
+      "找不到案件資料"
+    );
 
     return;
   }
@@ -1258,8 +1430,7 @@ function showRepairDetail(recordId) {
       []
     )
       .map(
-        (staff) =>
-          staff.name
+        (staff) => staff.name
       )
       .filter(Boolean)
       .join("、");
@@ -1322,7 +1493,9 @@ function showRepairDetail(recordId) {
       </div>
 
       <div class="photo-count">
-        故障照片：${escapeHtml(repair.photoCount || 0)} 張
+        故障照片：
+        ${escapeHtml(repair.photoCount || 0)}
+        張
       </div>
 
     </div>
@@ -1387,24 +1560,7 @@ function showRepairDetail(recordId) {
 
 
 // ========================================
-// 案件詳情單列
-// ========================================
-
-function detailRow(label, value) {
-
-  return `
-    <div class="detail-row">
-      <span>${escapeHtml(label)}</span>
-      <strong>
-        ${escapeHtml(value || "未填寫")}
-      </strong>
-    </div>
-  `;
-}
-
-
-// ========================================
-// 關閉案件詳情
+// 關閉我的案件詳情
 // ========================================
 
 function closeRepairDetail() {
@@ -1425,26 +1581,27 @@ closeDetailButton.addEventListener(
 
 
 repairDetailModal
-  .querySelector(".modal-overlay")
+  .querySelector(
+    ".modal-overlay"
+  )
   .addEventListener(
     "click",
     closeRepairDetail
   );
 
 
-// ========================================
-// 重新整理案件
-// ========================================
-
 refreshRepairsButton.addEventListener(
   "click",
   () => {
 
-    repairsLoaded = false;
+    repairsLoaded =
+      false;
 
     loadMyRepairs();
   }
 );
+
+
 // ========================================
 // 查詢工程師維修任務
 // ========================================
@@ -1495,7 +1652,9 @@ async function loadEngineerRepairs() {
 
 
     const result =
-      await response.json();
+      await readJsonResponse(
+        response
+      );
 
 
     if (!response.ok) {
@@ -1559,7 +1718,7 @@ async function loadEngineerRepairs() {
 
 
 // ========================================
-// 顯示工程師查詢錯誤
+// 工程師任務錯誤
 // ========================================
 
 function showEngineerError(message) {
@@ -1579,10 +1738,12 @@ function showEngineerError(message) {
 
 
 // ========================================
-// 顯示工程師案件卡片
+// 顯示工程師案件
 // ========================================
 
-function renderEngineerRepairs(repairs) {
+function renderEngineerRepairs(
+  repairs
+) {
 
   engineerRepairsList.innerHTML =
     "";
@@ -1663,6 +1824,7 @@ function renderEngineerRepairs(repairs) {
             </strong>
           </div>
 
+
           <div class="engineer-description">
 
             <span>
@@ -1714,7 +1876,7 @@ function renderEngineerRepairs(repairs) {
 
 
 // ========================================
-// 開啟工程師更新視窗
+// 開啟工程師更新畫面
 // ========================================
 
 function openEngineerUpdate(
@@ -1747,10 +1909,20 @@ function openEngineerUpdate(
     repair.recordId;
 
 
+  const allowedStatuses = [
+    "已指派工程師",
+    "維修中",
+    "無法維修",
+    "已完成"
+  ];
+
+
   engineerStatus.value =
-    repair.status === "待分派工程師處理"
-      ? "已指派工程師"
-      : repair.status;
+    allowedStatuses.includes(
+      repair.status
+    )
+      ? repair.status
+      : "已指派工程師";
 
 
   engineerExpectedDate.value =
@@ -1772,37 +1944,25 @@ function openEngineerUpdate(
 
     <div class="engineer-case-summary">
 
-      <div class="detail-row">
-        <span>設備名稱</span>
+      ${detailRow(
+        "設備名稱",
+        repair.equipmentName
+      )}
 
-        <strong>
-          ${escapeHtml(repair.equipmentName || "未填寫")}
-        </strong>
-      </div>
+      ${detailRow(
+        "設備編號",
+        repair.equipmentNumber
+      )}
 
-      <div class="detail-row">
-        <span>設備編號</span>
+      ${detailRow(
+        "所在位置",
+        repair.location
+      )}
 
-        <strong>
-          ${escapeHtml(repair.equipmentNumber || "未填寫")}
-        </strong>
-      </div>
-
-      <div class="detail-row">
-        <span>所在位置</span>
-
-        <strong>
-          ${escapeHtml(repair.location || "未填寫")}
-        </strong>
-      </div>
-
-      <div class="detail-row">
-        <span>報修人</span>
-
-        <strong>
-          ${escapeHtml(repair.applicant || "未填寫")}
-        </strong>
-      </div>
+      ${detailRow(
+        "報修人",
+        repair.applicant
+      )}
 
       <div class="detail-label">
         故障描述
@@ -1813,7 +1973,9 @@ function openEngineerUpdate(
       </div>
 
       <div class="photo-count">
-        故障照片：${escapeHtml(repair.photoCount || 0)} 張
+        故障照片：
+        ${escapeHtml(repair.photoCount || 0)}
+        張
       </div>
 
     </div>
@@ -1831,7 +1993,7 @@ function openEngineerUpdate(
 
 
 // ========================================
-// 關閉工程師更新視窗
+// 關閉工程師更新畫面
 // ========================================
 
 function closeEngineerUpdate() {
@@ -1839,11 +2001,9 @@ function closeEngineerUpdate() {
   engineerUpdateModal.style.display =
     "none";
 
-
   document.body.classList.remove(
     "modal-open"
   );
-
 
   engineerUpdateForm.reset();
 }
@@ -1897,7 +2057,9 @@ engineerUpdateForm.addEventListener(
 
 
     const maintenanceResult =
-      engineerResult.value.trim();
+      engineerResult
+        .value
+        .trim();
 
 
     if (!recordId) {
@@ -1972,7 +2134,9 @@ engineerUpdateForm.addEventListener(
 
 
       const result =
-        await response.json();
+        await readJsonResponse(
+          response
+        );
 
 
       if (!response.ok) {
@@ -1995,7 +2159,6 @@ engineerUpdateForm.addEventListener(
       engineerRepairsLoaded =
         false;
 
-
       repairsLoaded =
         false;
 
@@ -2006,7 +2169,7 @@ engineerUpdateForm.addEventListener(
     } catch (error) {
 
       console.error(
-        "Update engineer repair error:",
+        "Update repair error:",
         error
       );
 
@@ -2029,7 +2192,7 @@ engineerUpdateForm.addEventListener(
 
 
 // ========================================
-// 工程師狀態切換
+// 選擇已完成時，自動填完成日期
 // ========================================
 
 engineerStatus.addEventListener(
@@ -2038,37 +2201,12 @@ engineerStatus.addEventListener(
 
     if (
       engineerStatus.value ===
-      "已完成"
+      "已完成" &&
+      !engineerActualDate.value
     ) {
 
-      if (
-        !engineerActualDate.value
-      ) {
-
-        const today =
-          new Intl.DateTimeFormat(
-            "en-CA",
-            {
-              timeZone:
-                "Asia/Taipei",
-
-              year:
-                "numeric",
-
-              month:
-                "2-digit",
-
-              day:
-                "2-digit"
-            }
-          ).format(
-            new Date()
-          );
-
-
-        engineerActualDate.value =
-          today;
-      }
+      engineerActualDate.value =
+        getTaipeiDate();
     }
   }
 );
@@ -2088,6 +2226,7 @@ refreshEngineerButton.addEventListener(
     loadEngineerRepairs();
   }
 );
+
 
 // ========================================
 // 啟動 WOFF
