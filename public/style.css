@@ -640,3 +640,47 @@ input[type="file"] {
     line-height: 1.35;
   }
 }
+/* ========================================
+   故障照片
+======================================== */
+
+.repair-photo-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.repair-photo-button {
+  padding: 0;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.repair-photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border: 1px solid #e2e6ea;
+  border-radius: 9px;
+  background: #f3f4f5;
+}
+
+.repair-photo-button:active {
+  opacity: 0.75;
+}
+
+.no-photo {
+  padding: 14px;
+  background: #ffffff;
+  border: 1px dashed #d9dde1;
+  border-radius: 8px;
+  color: #7a828a;
+  text-align: center;
+  font-size: 14px;
+}
