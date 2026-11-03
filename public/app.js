@@ -262,7 +262,6 @@ async function initializeWOFF() {
 
     await woff.init({
       woffId: WOFF_ID,
-      scope: "openid user.profile.read"
     });
 
 
