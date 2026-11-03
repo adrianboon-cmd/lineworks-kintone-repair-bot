@@ -1,5 +1,10 @@
 const axios = require("axios");
 
+
+// ========================================
+// kintone 設定
+// ========================================
+
 const KINTONE_BASE_URL =
   process.env.KINTONE_BASE_URL;
 
@@ -16,21 +21,41 @@ const KINTONE_API_TOKEN =
 
 function checkConfig() {
 
-  if (
-    !KINTONE_BASE_URL ||
-    !KINTONE_APP_ID ||
-    !KINTONE_API_TOKEN
-  ) {
+  const missing = [];
+
+
+  if (!KINTONE_BASE_URL) {
+    missing.push(
+      "KINTONE_BASE_URL"
+    );
+  }
+
+
+  if (!KINTONE_APP_ID) {
+    missing.push(
+      "KINTONE_APP_ID"
+    );
+  }
+
+
+  if (!KINTONE_API_TOKEN) {
+    missing.push(
+      "KINTONE_API_TOKEN"
+    );
+  }
+
+
+  if (missing.length > 0) {
 
     throw new Error(
-      "kintone 環境變數尚未設定完整"
+      `缺少 kintone 環境變數：${missing.join(", ")}`
     );
   }
 }
 
 
 // ========================================
-// kintone Query 字串安全處理
+// Query 安全處理
 // ========================================
 
 function escapeQueryValue(value) {
@@ -42,10 +67,59 @@ function escapeQueryValue(value) {
 
 
 // ========================================
-// 整理 kintone 案件格式
+// 台北日期
+// ========================================
+
+function getTaipeiDate() {
+
+  return new Intl.DateTimeFormat(
+    "en-CA",
+    {
+      timeZone:
+        "Asia/Taipei",
+
+      year:
+        "numeric",
+
+      month:
+        "2-digit",
+
+      day:
+        "2-digit"
+    }
+  ).format(
+    new Date()
+  );
+}
+
+
+// ========================================
+// 整理 kintone 案件資料
 // ========================================
 
 function formatRepair(record) {
+
+  const photos =
+    (
+      record.fault_photo?.value ||
+      []
+    ).map(
+      (file) => ({
+
+        fileKey:
+          file.fileKey,
+
+        name:
+          file.name,
+
+        contentType:
+          file.contentType,
+
+        size:
+          file.size
+      })
+    );
+
 
   return {
 
@@ -58,34 +132,49 @@ function formatRepair(record) {
     applicant:
       record["申請人"]?.value || "",
 
+    reporterLineworksUserId:
+      record.lineworks_user_id?.value ||
+      "",
+
     applicationDate:
-      record.application_date?.value || "",
+      record.application_date?.value ||
+      "",
 
     equipmentCategory:
-      record.equipment_category?.value || "",
+      record.equipment_category?.value ||
+      "",
 
     equipmentNumber:
-      record.equipment_number?.value || "",
+      record.equipment_number?.value ||
+      "",
 
     equipmentName:
-      record.equipment_name?.value || "",
+      record.equipment_name?.value ||
+      "",
 
     location:
       record.location?.value || "",
 
     description:
-      record.fault_description?.value || "",
+      record.fault_description?.value ||
+      "",
 
     status:
-      record["處理狀態"]?.value || "",
+      record["處理狀態"]?.value ||
+      "",
 
     maintenanceStaff:
       (
-        record.maintenance_staff?.value || []
+        record.maintenance_staff?.value ||
+        []
       ).map(
         (user) => ({
-          code: user.code,
-          name: user.name
+
+          code:
+            user.code,
+
+          name:
+            user.name
         })
       ),
 
@@ -109,20 +198,10 @@ function formatRepair(record) {
         .maintenance_result
         ?.value || "",
 
-photos:
-  (
-    record.fault_photo?.value || []
-  ).map(
-    (file) => ({
-      fileKey: file.fileKey,
-      name: file.name,
-      contentType: file.contentType,
-      size: file.size
-    })
-  ),
+    photos,
 
-photoCount:
-  record.fault_photo?.value?.length || 0
+    photoCount:
+      photos.length
   };
 }
 
@@ -164,6 +243,7 @@ async function getAssignedRepairs(
 
       {
         headers: {
+
           "X-Cybozu-API-Token":
             KINTONE_API_TOKEN
         },
@@ -176,21 +256,32 @@ async function getAssignedRepairs(
           query,
 
           fields: [
+
             "$id",
             "$revision",
+
             "申請人",
+            "lineworks_user_id",
+
             "application_date",
+
             "equipment_category",
             "equipment_number",
             "equipment_name",
+
             "location",
+
             "fault_description",
             "fault_photo",
+
             "處理狀態",
+
             "maintenance_staff",
             "maintenance_lineworks_user_id",
+
             "expected_completion_date",
             "actual_completion_date",
+
             "maintenance_result"
           ]
         }
@@ -201,7 +292,58 @@ async function getAssignedRepairs(
   return response
     .data
     .records
-    .map(formatRepair);
+    .map(
+      formatRepair
+    );
+}
+
+
+// ========================================
+// 取得單一案件
+// ========================================
+
+async function getRepairById(
+  recordId
+) {
+
+  checkConfig();
+
+
+  if (!recordId) {
+
+    throw new Error(
+      "缺少案件編號"
+    );
+  }
+
+
+  const response =
+    await axios.get(
+
+      `${KINTONE_BASE_URL}/k/v1/record.json`,
+
+      {
+        headers: {
+
+          "X-Cybozu-API-Token":
+            KINTONE_API_TOKEN
+        },
+
+        params: {
+
+          app:
+            Number(KINTONE_APP_ID),
+
+          id:
+            Number(recordId)
+        }
+      }
+    );
+
+
+  return formatRepair(
+    response.data.record
+  );
 }
 
 
@@ -238,6 +380,7 @@ async function updateRepairProgress({
 
 
   const allowedStatuses = [
+
     "已指派工程師",
     "維修中",
     "無法維修",
@@ -246,7 +389,9 @@ async function updateRepairProgress({
 
 
   if (
-    !allowedStatuses.includes(status)
+    !allowedStatuses.includes(
+      status
+    )
   ) {
 
     throw new Error(
@@ -256,41 +401,22 @@ async function updateRepairProgress({
 
 
   // ======================================
-  // 先確認案件確實屬於目前工程師
+  // 取得更新前案件
   // ======================================
 
-  const recordResponse =
-    await axios.get(
-
-      `${KINTONE_BASE_URL}/k/v1/record.json`,
-
-      {
-        headers: {
-          "X-Cybozu-API-Token":
-            KINTONE_API_TOKEN
-        },
-
-        params: {
-          app:
-            Number(KINTONE_APP_ID),
-
-          id:
-            Number(recordId)
-        }
-      }
+  const existingRepair =
+    await getRepairById(
+      recordId
     );
 
 
-  const assignedUserId =
-    recordResponse
-      .data
-      .record
-      .maintenance_lineworks_user_id
-      ?.value || "";
-
+  // ======================================
+  // 驗證案件是否屬於目前工程師
+  // ======================================
 
   if (
-    assignedUserId !==
+    existingRepair
+      .maintenanceLineworksUserId !==
     lineworksUserId
   ) {
 
@@ -299,62 +425,62 @@ async function updateRepairProgress({
         "此案件未指派給目前登入的工程師"
       );
 
-    error.statusCode = 403;
+
+    error.statusCode =
+      403;
+
 
     throw error;
   }
 
 
   // ======================================
-  // 建立更新欄位
+  // 完成日期
+  // ======================================
+
+  let finalActualCompletionDate =
+    actualCompletionDate || "";
+
+
+  if (
+    status === "已完成" &&
+    !finalActualCompletionDate
+  ) {
+
+    finalActualCompletionDate =
+      getTaipeiDate();
+  }
+
+
+  // ======================================
+  // 更新欄位
   // ======================================
 
   const record = {
 
     "處理狀態": {
-      value: status
+      value:
+        status
     },
 
     expected_completion_date: {
       value:
-        expectedCompletionDate || null
+        expectedCompletionDate ||
+        null
     },
 
     actual_completion_date: {
       value:
-        actualCompletionDate || null
+        finalActualCompletionDate ||
+        null
     },
 
     maintenance_result: {
       value:
-        maintenanceResult || ""
+        maintenanceResult ||
+        ""
     }
   };
-
-
-  // 已完成但沒有填完成日期時，
-  // 自動填入台北當天日期
-  if (
-    status === "已完成" &&
-    !actualCompletionDate
-  ) {
-
-    const taipeiDate =
-      new Intl.DateTimeFormat(
-        "en-CA",
-        {
-          timeZone: "Asia/Taipei",
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit"
-        }
-      ).format(new Date());
-
-
-    record.actual_completion_date = {
-      value: taipeiDate
-    };
-  }
 
 
   const updateResponse =
@@ -374,6 +500,7 @@ async function updateRepairProgress({
 
       {
         headers: {
+
           "X-Cybozu-API-Token":
             KINTONE_API_TOKEN,
 
@@ -384,16 +511,71 @@ async function updateRepairProgress({
     );
 
 
+  // ======================================
+  // 回傳通知需要的完整資料
+  // ======================================
+
+  const engineerNames =
+    (
+      existingRepair.maintenanceStaff ||
+      []
+    )
+      .map(
+        (user) => user.name
+      )
+      .filter(Boolean)
+      .join("、");
+
+
   return {
+
     recordId:
       String(recordId),
 
     revision:
       updateResponse.data.revision,
 
-    status
+    previousStatus:
+      existingRepair.status,
+
+    status,
+
+    applicant:
+      existingRepair.applicant,
+
+    reporterLineworksUserId:
+      existingRepair
+        .reporterLineworksUserId,
+
+    engineerLineworksUserId:
+      lineworksUserId,
+
+    engineerNames,
+
+    equipmentCategory:
+      existingRepair.equipmentCategory,
+
+    equipmentNumber:
+      existingRepair.equipmentNumber,
+
+    equipmentName:
+      existingRepair.equipmentName,
+
+    location:
+      existingRepair.location,
+
+    expectedCompletionDate:
+      expectedCompletionDate || "",
+
+    actualCompletionDate:
+      finalActualCompletionDate,
+
+    maintenanceResult:
+      maintenanceResult || ""
   };
 }
+
+
 // ========================================
 // 下載 kintone 附件
 // ========================================
@@ -404,17 +586,23 @@ async function downloadRepairPhoto(
 
   checkConfig();
 
+
   if (!fileKey) {
+
     throw new Error(
       "缺少圖片 File Key"
     );
   }
 
+
   const response =
     await axios.get(
+
       `${KINTONE_BASE_URL}/k/v1/file.json`,
+
       {
         headers: {
+
           "X-Cybozu-API-Token":
             KINTONE_API_TOKEN
         },
@@ -430,6 +618,7 @@ async function downloadRepairPhoto(
 
 
   return {
+
     data:
       response.data,
 
@@ -441,8 +630,18 @@ async function downloadRepairPhoto(
   };
 }
 
+
+// ========================================
+// 匯出
+// ========================================
+
 module.exports = {
+
   getAssignedRepairs,
+
+  getRepairById,
+
   updateRepairProgress,
+
   downloadRepairPhoto
 };
