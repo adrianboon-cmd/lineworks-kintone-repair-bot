@@ -255,18 +255,73 @@ function getStatusClass(status) {
 // ========================================
 // WOFF 初始化
 // ========================================
-
 async function initializeWOFF() {
+
+  const timeoutId = setTimeout(
+    () => {
+
+      if (!currentUser) {
+
+        userLoading.style.display =
+          "none";
+
+        userError.style.display =
+          "block";
+
+        userError.innerHTML =
+          "LINE WORKS 登入初始化逾時。<br>" +
+          "請關閉此頁面後，重新從 LINE WORKS 開啟報修系統。";
+      }
+
+    },
+    10000
+  );
+
 
   try {
 
+    console.log(
+      "Step 1: WOFF init start"
+    );
+
+
+    // ==============================
+    // WOFF 初始化
+    // ==============================
+
     await woff.init({
-      woffId: WOFF_ID,
+      woffId: WOFF_ID
     });
+
+
+    console.log(
+      "Step 2: WOFF init success"
+    );
+
+
+    console.log(
+      "Is in LINE WORKS:",
+      woff.isInClient()
+    );
+
+
+    // ==============================
+    // 取得 Profile
+    // ==============================
+
+    console.log(
+      "Step 3: getProfile start"
+    );
 
 
     const profile =
       await woff.getProfile();
+
+
+    console.log(
+      "Step 4: getProfile success",
+      profile
+    );
 
 
     const userId =
@@ -285,7 +340,7 @@ async function initializeWOFF() {
     if (!userId) {
 
       throw new Error(
-        "無法取得 LINE WORKS 使用者 ID"
+        "無法取得 LINE WORKS User ID"
       );
     }
 
@@ -303,6 +358,15 @@ async function initializeWOFF() {
       userName
     };
 
+
+    clearTimeout(
+      timeoutId
+    );
+
+
+    // ==============================
+    // 顯示使用者
+    // ==============================
 
     displayUserName.textContent =
       currentUser.userName;
@@ -328,37 +392,46 @@ async function initializeWOFF() {
       "送出報修";
 
 
-    // 根據 URL 的 view 參數切換功能
+    // ==============================
+    // URL View
+    // ==============================
+
     const params =
       new URLSearchParams(
         window.location.search
       );
 
+
     const requestedView =
       params.get("view");
 
 
-if (
-  requestedView ===
-  "my-repairs"
-) {
+    if (
+      requestedView ===
+      "my-repairs"
+    ) {
 
-  showMyRepairsView();
+      showMyRepairsView();
 
-} else if (
-  requestedView ===
-  "engineer"
-) {
+    } else if (
+      requestedView ===
+      "engineer"
+    ) {
 
-  showEngineerView();
+      showEngineerView();
 
-} else {
+    } else {
 
-  showCreateRepairView();
-}
+      showCreateRepairView();
+    }
 
 
   } catch (error) {
+
+    clearTimeout(
+      timeoutId
+    );
+
 
     console.error(
       "WOFF initialization error:",
@@ -394,7 +467,7 @@ if (
 
 
     userError.innerHTML =
-      `LINE WORKS 使用者資訊取得失敗<br>` +
+      `LINE WORKS 使用者資訊取得失敗<br><br>` +
       `Error Code：${escapeHtml(errorCode)}<br>` +
       `Error Message：${escapeHtml(errorMessage)}`;
 
@@ -406,7 +479,6 @@ if (
       "無法取得登入資訊";
   }
 }
-
 
 // ========================================
 // 顯示建立報修
