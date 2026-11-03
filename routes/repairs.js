@@ -12,9 +12,13 @@ const ALLOWED_TYPES = [
   "image/webp"
 ];
 
-// 圖片暫存在記憶體
-// 後續會直接轉送到 kintone，不寫入 Render 磁碟
+
+// ========================================
+// Multer 設定
+// ========================================
+
 const upload = multer({
+
   storage: multer.memoryStorage(),
 
   limits: {
@@ -23,9 +27,13 @@ const upload = multer({
   },
 
   fileFilter: (req, file, callback) => {
+
     if (!ALLOWED_TYPES.includes(file.mimetype)) {
+
       return callback(
-        new Error("只支援 JPG、PNG 或 WebP 圖片")
+        new Error(
+          "只支援 JPG、PNG 或 WebP 圖片"
+        )
       );
     }
 
@@ -33,95 +41,133 @@ const upload = multer({
   }
 });
 
+
 // ========================================
 // POST /api/repairs
-// 建立報修案件
 // ========================================
 
 router.post(
   "/",
+
   upload.array("images", MAX_FILES),
 
   async (req, res, next) => {
+
     try {
+
       const {
-        equipmentName,
+        equipmentCategory,
         equipmentNumber,
+        equipmentName,
+        location,
         description,
-        priority,
         reporterId,
         reporterName
       } = req.body;
 
+
+      // ==========================
       // 必填欄位檢查
+      // ==========================
+
+      if (!equipmentCategory?.trim()) {
+
+        return res.status(400).json({
+          success: false,
+          message: "請填寫設備類別"
+        });
+      }
+
+
       if (!equipmentName?.trim()) {
+
         return res.status(400).json({
           success: false,
           message: "請填寫設備名稱"
         });
       }
 
+
+      if (!location?.trim()) {
+
+        return res.status(400).json({
+          success: false,
+          message: "請填寫所在位置"
+        });
+      }
+
+
       if (!description?.trim()) {
+
         return res.status(400).json({
           success: false,
-          message: "請填寫故障說明"
+          message: "請填寫故障描述"
         });
       }
 
-      const allowedPriorities = [
-        "一般",
-        "緊急",
-        "設備停機"
-      ];
 
-      if (
-        priority &&
-        !allowedPriorities.includes(priority)
-      ) {
-        return res.status(400).json({
-          success: false,
-          message: "緊急程度格式錯誤"
-        });
-      }
+      // ==========================
+      // Render Log
+      // ==========================
 
-      // 暫時輸出到 Render Log
-      // 下一階段會改成送進 kintone
-      console.log("===== New Repair Request =====");
+      console.log(
+        "===== New Repair Request ====="
+      );
 
       console.log({
-        equipmentName,
-        equipmentNumber,
-        description,
-        priority,
         reporterId,
-        reporterName
+        reporterName,
+        equipmentCategory,
+        equipmentNumber,
+        equipmentName,
+        location,
+        description
       });
+
 
       console.log(
         "Images:",
-        (req.files || []).map((file) => ({
-          name: file.originalname,
-          type: file.mimetype,
-          size: file.size
-        }))
+        (req.files || []).map(
+          (file) => ({
+            name: file.originalname,
+            type: file.mimetype,
+            size: file.size
+          })
+        )
       );
 
-      // 測試用案件編號
-      // 接 kintone 後改用 Record ID
+
+      // ==========================
+      // 測試案件編號
+      // ==========================
+      // 下一階段改成
+      // kintone Record Number
+
       const ticketNumber =
         `TEST-${Date.now()}`;
 
+
       return res.status(201).json({
+
         success: true,
+
         ticketNumber,
-        message: "報修資料已成功接收",
-        receivedImages: req.files?.length || 0
+
+        message:
+          "報修資料已成功接收",
+
+        receivedImages:
+          req.files?.length || 0
+
       });
 
+
     } catch (error) {
+
       next(error);
     }
   }
 );
+
 
 module.exports = router;
