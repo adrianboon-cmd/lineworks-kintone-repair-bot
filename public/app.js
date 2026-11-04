@@ -1441,7 +1441,39 @@ function showRepairDetail(recordId) {
       repair.status
     );
 
+const photoHtml =
+  (
+    repair.photos || []
+  )
+    .map(
+      (photo, index) => {
 
+        const photoUrl =
+          "/api/engineer-repairs/photo" +
+          "?fileKey=" +
+          encodeURIComponent(
+            photo.fileKey
+          );
+
+
+        return `
+          <button
+            class="repair-photo-button"
+            type="button"
+            onclick="window.open('${photoUrl}', '_blank')"
+          >
+            <img
+              class="repair-photo"
+              src="${photoUrl}"
+              alt="故障照片 ${index + 1}"
+              loading="lazy"
+            >
+          </button>
+        `;
+      }
+    )
+    .join("");
+  
   detailTitle.textContent =
     `案件 #${repair.recordId}`;
 
@@ -1492,11 +1524,23 @@ function showRepairDetail(recordId) {
         ${escapeHtml(repair.description || "未填寫")}
       </div>
 
-      <div class="photo-count">
-        故障照片：
-        ${escapeHtml(repair.photoCount || 0)}
-        張
+<div class="detail-label">
+  故障照片
+</div>
+
+${
+  photoHtml
+    ? `
+      <div class="repair-photo-grid">
+        ${photoHtml}
       </div>
+    `
+    : `
+      <div class="no-photo">
+        本案件沒有故障照片
+      </div>
+    `
+}
 
     </div>
 
