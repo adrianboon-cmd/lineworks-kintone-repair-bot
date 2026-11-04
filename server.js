@@ -9,6 +9,10 @@ const repairRoutes =
 const engineerRepairRoutes =
   require("./routes/engineerRepairs");
 
+const kintoneWebhookRoutes =
+  require("./routes/kintoneWebhook");
+
+
 const app = express();
 
 const PORT =
@@ -33,10 +37,7 @@ app.use(
 // API Routes
 // ========================================
 
-// Bot 測試
-
-
-// 報修與我的案件
+// 報修 / 我的案件
 app.use(
   "/api/repairs",
   repairRoutes
@@ -47,6 +48,13 @@ app.use(
 app.use(
   "/api/engineer-repairs",
   engineerRepairRoutes
+);
+
+
+// kintone Webhook
+app.use(
+  "/api/kintone-webhook",
+  kintoneWebhookRoutes
 );
 
 
@@ -70,7 +78,7 @@ app.get(
 
 // ========================================
 // API 404
-// 注意：一定要放在所有 API Routes 後面
+// 必須放在全部 API Routes 後面
 // ========================================
 
 app.use(
