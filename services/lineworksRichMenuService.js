@@ -226,7 +226,6 @@ async function createImageUploadResource() {
 // ========================================
 // 2. 將 PNG 上傳至 LINE WORKS Storage
 // ========================================
-
 async function uploadRichMenuImage() {
 
   const uploadResource =
@@ -240,55 +239,111 @@ async function uploadRichMenuImage() {
 
 
   /*
-    uploadUrl 是 LINE WORKS 回傳的一次性 URL。
-    這裡直接把 PNG binary 上傳至 Storage。
+    LINE WORKS Storage Upload
+    
+    uploadUrl 是 LINE WORKS 產生的一次性 Storage URL。
+    
+    上傳時需要使用 OAuth Access Token，
+    並以 binary body 傳送實際 PNG。
   */
 
-  await axios.put(
-
-    uploadResource.uploadUrl,
-
-    imageBuffer,
-
-    {
-      headers: {
-
-        "Content-Type":
-          "image/png",
-
-        "Content-Length":
-          imageBuffer.length
-      },
-
-      maxBodyLength:
-        Infinity,
-
-      timeout:
-        30000
-    }
-  );
+  const accessToken =
+    await getAccessToken();
 
 
-  console.log(
-    "Rich Menu image uploaded:",
-    {
+  try {
+
+    const response =
+      await axios.put(
+
+        uploadResource.uploadUrl,
+
+        imageBuffer,
+
+        {
+          headers: {
+
+            Authorization:
+              `Bearer ${accessToken}`,
+
+            "Content-Type":
+              "image/png",
+
+            "Content-Length":
+              imageBuffer.length
+          },
+
+          maxBodyLength:
+            Infinity,
+
+          maxContentLength:
+            Infinity,
+
+          timeout:
+            30000
+        }
+      );
+
+
+    console.log(
+      "Rich Menu image uploaded:",
+      {
+        fileId:
+          uploadResource.fileId,
+
+        fileSize:
+          uploadResource.fileSize,
+
+        status:
+          response.status
+      }
+    );
+
+
+    return {
+
       fileId:
         uploadResource.fileId,
 
       fileSize:
         uploadResource.fileSize
-    }
-  );
+    };
 
 
-  return {
+  } catch (error) {
 
-    fileId:
-      uploadResource.fileId,
+    console.error(
+      "Rich Menu image upload failed:",
+      {
+        status:
+          error.response?.status,
 
-    fileSize:
-      uploadResource.fileSize
-  };
+        data:
+          error.response?.data,
+
+        message:
+          error.message,
+
+        uploadHost:
+          (() => {
+
+            try {
+
+              return new URL(
+                uploadResource.uploadUrl
+              ).host;
+
+            } catch {
+
+              return "unknown";
+            }
+          })()
+      }
+    );
+
+
+    throw error;
+  }
 }
 
 
