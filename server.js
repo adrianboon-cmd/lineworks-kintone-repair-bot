@@ -15,6 +15,7 @@ const botTestRoutes =
 const richMenuSetupRoutes =
   require("./routes/richMenuSetup");
 
+
 const app = express();
 
 const PORT =
@@ -38,12 +39,15 @@ app.use(
 // ========================================
 // API Routes
 // ========================================
+
+// Bot 測試
 app.use(
   "/api/bot-test",
   botTestRoutes
 );
 
-// 報修與我的報修案件
+
+// 報修與我的案件
 app.use(
   "/api/repairs",
   repairRoutes
@@ -56,20 +60,16 @@ app.use(
   engineerRepairRoutes
 );
 
-const repairRoutes =
-  require("./routes/repairs");
 
-const engineerRepairRoutes =
-  require("./routes/engineerRepairs");
+// Rich Menu Setup
+app.use(
+  "/api/richmenu",
+  richMenuSetupRoutes
+);
 
-const botTestRoutes =
-  require("./routes/botTest");
-
-const richMenuSetupRoutes =
-  require("./routes/richMenuSetup");
 
 // ========================================
-// Health check
+// Health Check
 // ========================================
 
 app.get(
@@ -87,7 +87,8 @@ app.get(
 
 
 // ========================================
-// 404 API
+// API 404
+// 注意：一定要放在所有 API Routes 後面
 // ========================================
 
 app.use(
@@ -95,21 +96,28 @@ app.use(
 
   (req, res) => {
 
-    res.status(404).json({
-      success: false,
-      message:
-        "找不到指定的 API"
-    });
+    res
+      .status(404)
+      .json({
+        success: false,
+        message:
+          "找不到指定的 API"
+      });
   }
 );
 
 
 // ========================================
-// Global error handler
+// Global Error Handler
 // ========================================
 
 app.use(
-  (err, req, res, next) => {
+  (
+    err,
+    req,
+    res,
+    next
+  ) => {
 
     console.error(
       "Server error:",
@@ -122,7 +130,7 @@ app.use(
       400;
 
 
-    const kintoneMessage =
+    const apiMessage =
       err.response?.data?.message;
 
 
@@ -130,8 +138,9 @@ app.use(
       .status(statusCode)
       .json({
         success: false,
+
         message:
-          kintoneMessage ||
+          apiMessage ||
           err.message ||
           "Server error"
       });
