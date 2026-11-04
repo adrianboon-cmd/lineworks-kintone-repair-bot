@@ -9,13 +9,6 @@ const repairRoutes =
 const engineerRepairRoutes =
   require("./routes/engineerRepairs");
 
-const botTestRoutes =
-  require("./routes/botTest");
-
-const richMenuSetupRoutes =
-  require("./routes/richMenuSetup");
-
-
 const app = express();
 
 const PORT =
@@ -41,10 +34,6 @@ app.use(
 // ========================================
 
 // Bot 測試
-app.use(
-  "/api/bot-test",
-  botTestRoutes
-);
 
 
 // 報修與我的案件
