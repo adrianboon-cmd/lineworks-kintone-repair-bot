@@ -1,6 +1,7 @@
 const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
+const FormData = require("form-data");
 
 const {
   getAccessToken
@@ -76,7 +77,7 @@ function checkConfig() {
 
 
 // ========================================
-// 檢查圖片
+// 檢查 Rich Menu 圖片
 // ========================================
 
 function getImageInformation() {
@@ -105,6 +106,16 @@ function getImageInformation() {
   }
 
 
+  if (
+    stats.size <= 0
+  ) {
+
+    throw new Error(
+      "Rich Menu 圖片內容為空"
+    );
+  }
+
+
   return {
 
     fileName:
@@ -120,13 +131,21 @@ function getImageInformation() {
 
 
 // ========================================
-// 共用 Authorization Header
+// Authorization Header
 // ========================================
 
 async function getAuthorizationHeaders() {
 
   const accessToken =
     await getAccessToken();
+
+
+  if (!accessToken) {
+
+    throw new Error(
+      "無法取得 LINE WORKS Access Token"
+    );
+  }
 
 
   return {
@@ -138,7 +157,7 @@ async function getAuthorizationHeaders() {
 
 
 // ========================================
-// 1. 取得圖片 Upload URL 與 fileId
+// 1. 取得 Storage Upload URL 與 fileId
 // ========================================
 
 async function createImageUploadResource() {
@@ -157,75 +176,111 @@ async function createImageUploadResource() {
     );
 
 
-  const response =
-    await axios.post(
+  try {
 
-      `${API_BASE_URL}/bots/` +
-      `${encodedBotId}/attachments`,
+    const response =
+      await axios.post(
 
-      {
-        fileName:
-          image.fileName
-      },
+        `${API_BASE_URL}/bots/` +
+        `${encodedBotId}/attachments`,
 
-      {
-        headers: {
+        {
+          fileName:
+            image.fileName,
 
-          ...headers,
-
-          "Content-Type":
-            "application/json"
+          fileSize:
+            image.fileSize
         },
 
-        timeout:
-          15000
+        {
+          headers: {
+
+            ...headers,
+
+            "Content-Type":
+              "application/json"
+          },
+
+          timeout:
+            15000
+        }
+      );
+
+
+    const fileId =
+      response.data?.fileId;
+
+
+    const uploadUrl =
+      response.data?.uploadUrl;
+
+
+    if (
+      !fileId ||
+      !uploadUrl
+    ) {
+
+      throw new Error(
+        "LINE WORKS 未回傳圖片的 fileId 或 uploadUrl"
+      );
+    }
+
+
+    console.log(
+      "Rich Menu upload resource created:",
+      {
+        fileId,
+        fileName:
+          image.fileName,
+        fileSize:
+          image.fileSize,
+        uploadHost:
+          new URL(
+            uploadUrl
+          ).host
       }
     );
 
 
-  const fileId =
-    response.data.fileId;
+    return {
 
+      ...image,
 
-  const uploadUrl =
-    response.data.uploadUrl;
-
-
-  if (
-    !fileId ||
-    !uploadUrl
-  ) {
-
-    throw new Error(
-      "LINE WORKS 未回傳 Rich Menu 圖片的 fileId 或 uploadUrl"
-    );
-  }
-
-
-  console.log(
-    "Rich Menu upload resource created:",
-    {
       fileId,
-      fileSize:
-        image.fileSize
-    }
-  );
+
+      uploadUrl
+    };
 
 
-  return {
+  } catch (error) {
 
-    ...image,
+    console.error(
+      "Create Rich Menu upload resource failed:",
+      {
+        status:
+          error.response?.status,
 
-    fileId,
+        data:
+          error.response?.data,
 
-    uploadUrl
-  };
+        message:
+          error.message,
+
+        url:
+          error.config?.url
+      }
+    );
+
+
+    throw error;
+  }
 }
 
 
 // ========================================
-// 2. 將 PNG 上傳至 LINE WORKS Storage
+// 2. 上傳 PNG 至 LINE WORKS Storage
 // ========================================
+
 async function uploadRichMenuImage() {
 
   const uploadResource =
@@ -242,21 +297,16 @@ async function uploadRichMenuImage() {
     await getAccessToken();
 
 
-  // ======================================
-  // LINE WORKS Storage 要求 multipart/form-data
-  // ======================================
-
-  const FormData =
-    require("form-data");
-
-
   const form =
     new FormData();
 
 
-  // 官方要求：
-  // resourceName
-  // Filedata
+  /*
+    LINE WORKS Storage Upload 必要欄位：
+
+    resourceName
+    Filedata
+  */
 
   form.append(
     "resourceName",
@@ -305,16 +355,29 @@ async function uploadRichMenuImage() {
             Infinity,
 
           timeout:
-            30000
+            30000,
+
+          validateStatus:
+            (status) =>
+              status >= 200 &&
+              status < 300
         }
       );
+
+
+    const uploadedFileId =
+      response.data?.fileId ||
+      uploadResource.fileId;
 
 
     console.log(
       "Rich Menu image uploaded:",
       {
         fileId:
-          uploadResource.fileId,
+          uploadedFileId,
+
+        fileName:
+          uploadResource.fileName,
 
         fileSize:
           uploadResource.fileSize,
@@ -328,118 +391,7 @@ async function uploadRichMenuImage() {
     return {
 
       fileId:
-        response.data?.fileId ||
-        uploadResource.fileId,
-
-      fileSize:
-        uploadResource.fileSize
-    };
-
-
-  } catch (error) {
-
-    console.error(
-      "Rich Menu image upload failed:",
-      {
-
-        status:
-          error.response?.status,
-
-        data:
-          error.response?.data,
-
-        message:
-          error.message,
-
-        host:
-          (() => {
-
-            try {
-
-              return new URL(
-                uploadResource.uploadUrl
-              ).host;
-
-            } catch {
-
-              return "unknown";
-            }
-
-          })()
-      }
-    );
-
-
-    throw error;
-  }
-}
-
-  /*
-    LINE WORKS Storage Upload
-    
-    uploadUrl 是 LINE WORKS 產生的一次性 Storage URL。
-    
-    上傳時需要使用 OAuth Access Token，
-    並以 binary body 傳送實際 PNG。
-  */
-
-  const accessToken =
-    await getAccessToken();
-
-
-  try {
-
-    const response =
-      await axios.put(
-
-        uploadResource.uploadUrl,
-
-        imageBuffer,
-
-        {
-          headers: {
-
-            Authorization:
-              `Bearer ${accessToken}`,
-
-            "Content-Type":
-              "image/png",
-
-            "Content-Length":
-              imageBuffer.length
-          },
-
-          maxBodyLength:
-            Infinity,
-
-          maxContentLength:
-            Infinity,
-
-          timeout:
-            30000
-        }
-      );
-
-
-    console.log(
-      "Rich Menu image uploaded:",
-      {
-        fileId:
-          uploadResource.fileId,
-
-        fileSize:
-          uploadResource.fileSize,
-
-        status:
-          response.status
-      }
-    );
-
-
-    return {
-
-      fileId:
-        uploadResource.fileId,
+        uploadedFileId,
 
       fileSize:
         uploadResource.fileSize
@@ -459,6 +411,9 @@ async function uploadRichMenuImage() {
 
         message:
           error.message,
+
+        method:
+          error.config?.method,
 
         uploadHost:
           (() => {
@@ -473,6 +428,7 @@ async function uploadRichMenuImage() {
 
               return "unknown";
             }
+
           })()
       }
     );
@@ -484,18 +440,13 @@ async function uploadRichMenuImage() {
 
 
 // ========================================
-// 建立三個功能 URL
+// 建立三個 WOFF 功能 URL
 // ========================================
 
 function getActionUrls() {
 
   checkConfig();
 
-
-  /*
-    若 WOFF URL 原本已有 query string，
-    使用 URL API 可安全加入 view 參數。
-  */
 
   const createUrl =
     new URL(
@@ -547,7 +498,7 @@ function getActionUrls() {
 
 
 // ========================================
-// 3. 建立 Rich Menu
+// 3. 建立三欄 Rich Menu
 // ========================================
 
 async function createRichMenu() {
@@ -585,6 +536,10 @@ async function createRichMenu() {
 
     areas: [
 
+      // ================================
+      // 我要報修
+      // ================================
+
       {
         bounds: {
 
@@ -614,6 +569,11 @@ async function createRichMenu() {
         }
       },
 
+
+      // ================================
+      // 案件查詢
+      // ================================
+
       {
         bounds: {
 
@@ -642,6 +602,11 @@ async function createRichMenu() {
             urls.myRepairs
         }
       },
+
+
+      // ================================
+      // 維修任務
+      // ================================
 
       {
         bounds: {
@@ -675,61 +640,87 @@ async function createRichMenu() {
   };
 
 
-  const response =
-    await axios.post(
+  try {
 
-      `${API_BASE_URL}/bots/` +
-      `${encodedBotId}/richmenus`,
+    const response =
+      await axios.post(
 
-      richMenuBody,
+        `${API_BASE_URL}/bots/` +
+        `${encodedBotId}/richmenus`,
 
+        richMenuBody,
+
+        {
+          headers: {
+
+            ...headers,
+
+            "Content-Type":
+              "application/json"
+          },
+
+          timeout:
+            15000
+        }
+      );
+
+
+    const richmenuId =
+      response.data?.richmenuId;
+
+
+    if (!richmenuId) {
+
+      throw new Error(
+        "LINE WORKS 未回傳 richmenuId"
+      );
+    }
+
+
+    console.log(
+      "LINE WORKS Rich Menu created:",
       {
-        headers: {
-
-          ...headers,
-
-          "Content-Type":
-            "application/json"
-        },
-
-        timeout:
-          15000
+        richmenuId,
+        urls
       }
     );
 
 
-  const richmenuId =
-    response.data.richmenuId;
+    return {
 
-
-  if (!richmenuId) {
-
-    throw new Error(
-      "LINE WORKS 未回傳 richmenuId"
-    );
-  }
-
-
-  console.log(
-    "LINE WORKS Rich Menu created:",
-    {
       richmenuId,
+
       urls
-    }
-  );
+    };
 
 
-  return {
+  } catch (error) {
 
-    richmenuId,
+    console.error(
+      "Create Rich Menu failed:",
+      {
+        status:
+          error.response?.status,
 
-    urls
-  };
+        data:
+          error.response?.data,
+
+        message:
+          error.message,
+
+        url:
+          error.config?.url
+      }
+    );
+
+
+    throw error;
+  }
 }
 
 
 // ========================================
-// 4. 將 fileId 套用至 Rich Menu
+// 4. 將圖片 fileId 套用至 Rich Menu
 // ========================================
 
 async function setRichMenuImage(
@@ -737,6 +728,22 @@ async function setRichMenuImage(
   fileId
 ) {
 
+  if (!richmenuId) {
+
+    throw new Error(
+      "缺少 richmenuId"
+    );
+  }
+
+
+  if (!fileId) {
+
+    throw new Error(
+      "缺少 Rich Menu 圖片 fileId"
+    );
+  }
+
+
   const headers =
     await getAuthorizationHeaders();
 
@@ -753,54 +760,92 @@ async function setRichMenuImage(
     );
 
 
-  await axios.post(
+  try {
 
-    `${API_BASE_URL}/bots/` +
-    `${encodedBotId}/richmenus/` +
-    `${encodedRichmenuId}/image`,
+    const response =
+      await axios.post(
 
-    {
-      fileId
-    },
+        `${API_BASE_URL}/bots/` +
+        `${encodedBotId}/richmenus/` +
+        `${encodedRichmenuId}/image`,
 
-    {
-      headers: {
+        {
+          fileId
+        },
 
-        ...headers,
+        {
+          headers: {
 
-        "Content-Type":
-          "application/json"
-      },
+            ...headers,
 
-      timeout:
-        15000
-    }
-  );
+            "Content-Type":
+              "application/json"
+          },
 
-
-  console.log(
-    "Rich Menu image assigned:",
-    {
-      richmenuId,
-      fileId
-    }
-  );
+          timeout:
+            15000
+        }
+      );
 
 
-  return {
-    success: true
-  };
+    console.log(
+      "Rich Menu image assigned:",
+      {
+        richmenuId,
+        fileId,
+        status:
+          response.status
+      }
+    );
+
+
+    return {
+      success: true
+    };
+
+
+  } catch (error) {
+
+    console.error(
+      "Set Rich Menu image failed:",
+      {
+        status:
+          error.response?.status,
+
+        data:
+          error.response?.data,
+
+        message:
+          error.message,
+
+        richmenuId,
+
+        fileId
+      }
+    );
+
+
+    throw error;
+  }
 }
 
 
 // ========================================
-// 5. 設為 Default Rich Menu
+// 5. 設為 Bot Default Rich Menu
 // ========================================
 
 async function setDefaultRichMenu(
   richmenuId
 ) {
 
+  if (!richmenuId) {
+
+    throw new Error(
+      "缺少 richmenuId"
+    );
+  }
+
+
   const headers =
     await getAuthorizationHeaders();
 
@@ -817,46 +862,84 @@ async function setDefaultRichMenu(
     );
 
 
-  const response =
-    await axios.post(
+  try {
 
-      `${API_BASE_URL}/bots/` +
-      `${encodedBotId}/richmenus/` +
-      `${encodedRichmenuId}/set-default`,
+    const response =
+      await axios.post(
 
-      null,
+        `${API_BASE_URL}/bots/` +
+        `${encodedBotId}/richmenus/` +
+        `${encodedRichmenuId}/set-default`,
 
+        null,
+
+        {
+          headers: {
+
+            ...headers,
+
+            "Content-Type":
+              "application/json"
+          },
+
+          timeout:
+            15000
+        }
+      );
+
+
+    const defaultRichmenuId =
+      response.data?.defaultRichmenuId ||
+      richmenuId;
+
+
+    console.log(
+      "Default Rich Menu set:",
       {
-        headers,
+        botId:
+          BOT_ID,
 
-        timeout:
-          15000
+        richmenuId,
+
+        defaultRichmenuId,
+
+        status:
+          response.status
       }
     );
 
 
-  console.log(
-    "Default Rich Menu set:",
-    {
+    return {
+
       botId:
+        response.data?.botId ||
         BOT_ID,
 
-      richmenuId
-    }
-  );
+      defaultRichmenuId
+    };
 
 
-  return {
+  } catch (error) {
 
-    botId:
-      response.data?.botId ||
-      BOT_ID,
+    console.error(
+      "Set Default Rich Menu failed:",
+      {
+        status:
+          error.response?.status,
 
-    defaultRichmenuId:
-      response.data
-        ?.defaultRichmenuId ||
-      richmenuId
-  };
+        data:
+          error.response?.data,
+
+        message:
+          error.message,
+
+        richmenuId
+      }
+    );
+
+
+    throw error;
+  }
 }
 
 
@@ -874,24 +957,17 @@ async function setupRepairRichMenu() {
   );
 
 
-  /*
-    官方流程：
-
-    1. Upload bot content
-    2. Create rich menu
-    3. Set rich menu image
-    4. Set default rich menu
-  */
-
-
+  // 1. 上傳圖片
   const uploadedImage =
     await uploadRichMenuImage();
 
 
+  // 2. 建立 Rich Menu
   const createdRichMenu =
     await createRichMenu();
 
 
+  // 3. 套用圖片
   await setRichMenuImage(
 
     createdRichMenu.richmenuId,
@@ -900,6 +976,7 @@ async function setupRepairRichMenu() {
   );
 
 
+  // 4. 設成 Default
   const defaultResult =
     await setDefaultRichMenu(
       createdRichMenu.richmenuId
@@ -914,6 +991,9 @@ async function setupRepairRichMenu() {
     richmenuId:
       createdRichMenu.richmenuId,
 
+    defaultRichmenuId:
+      defaultResult.defaultRichmenuId,
+
     fileId:
       uploadedImage.fileId,
 
@@ -921,10 +1001,7 @@ async function setupRepairRichMenu() {
       uploadedImage.fileSize,
 
     urls:
-      createdRichMenu.urls,
-
-    defaultRichmenuId:
-      defaultResult.defaultRichmenuId
+      createdRichMenu.urls
   };
 
 
