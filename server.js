@@ -50,13 +50,6 @@ app.use(
 );
 
 
-// Rich Menu Setup
-app.use(
-  "/api/richmenu",
-  richMenuSetupRoutes
-);
-
-
 // ========================================
 // Health Check
 // ========================================
