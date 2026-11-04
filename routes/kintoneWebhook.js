@@ -29,7 +29,7 @@ function getFieldValue(
 
 
 // ========================================
-// 共用：日期顯示
+// 共用：日期格式
 // ========================================
 
 function formatDate(value) {
@@ -61,7 +61,7 @@ function formatDate(value) {
 
 
 // ========================================
-// 建立工程師指派通知
+// 指派工程師通知：給工程師
 // ========================================
 
 function buildEngineerAssignmentMessage(
@@ -110,7 +110,7 @@ function buildEngineerAssignmentMessage(
 
 
 // ========================================
-// 建立報修人通知
+// 指派工程師通知：給報修人
 // ========================================
 
 function buildReporterAssignmentMessage(
@@ -146,6 +146,277 @@ function buildReporterAssignmentMessage(
 
 
 // ========================================
+// 維修中通知：給報修人
+// ========================================
+
+function buildInProgressMessage(
+  repair
+) {
+
+  const lines = [
+
+    "🧰 報修案件進度更新",
+
+    "",
+
+    `案件編號：#${repair.recordId}`,
+
+    `設備名稱：${repair.equipmentName || "未設定"}`,
+
+    `設備編號：${repair.equipmentNumber || "未填寫"}`,
+
+    `所在位置：${repair.location || "未設定"}`,
+
+    `維修人員：${repair.engineerNames || "未設定"}`,
+
+    `目前狀態：維修中`
+  ];
+
+
+  if (
+    repair.expectedCompletionDate
+  ) {
+
+    lines.push(
+
+      `預計完成日期：${formatDate(
+        repair.expectedCompletionDate
+      )}`
+    );
+  }
+
+
+  if (
+    repair.maintenanceResult
+  ) {
+
+    lines.push(
+
+      "",
+
+      "維修進度：",
+
+      repair.maintenanceResult
+    );
+  }
+
+
+  lines.push(
+
+    "",
+
+    "您可以進入「設備報修系統 → 案件查詢」查看最新進度。"
+  );
+
+
+  return lines.join("\n");
+}
+
+
+// ========================================
+// 無法維修通知：給報修人
+// ========================================
+
+function buildUnableToRepairMessage(
+  repair
+) {
+
+  const lines = [
+
+    "⚠️ 報修案件狀態更新",
+
+    "",
+
+    `案件編號：#${repair.recordId}`,
+
+    `設備名稱：${repair.equipmentName || "未設定"}`,
+
+    `設備編號：${repair.equipmentNumber || "未填寫"}`,
+
+    `所在位置：${repair.location || "未設定"}`,
+
+    `維修人員：${repair.engineerNames || "未設定"}`,
+
+    "目前狀態：無法維修"
+  ];
+
+
+  if (
+    repair.maintenanceResult
+  ) {
+
+    lines.push(
+
+      "",
+
+      "處理說明：",
+
+      repair.maintenanceResult
+    );
+  }
+
+
+  lines.push(
+
+    "",
+
+    "請進入「設備報修系統 → 案件查詢」查看案件詳情。"
+  );
+
+
+  return lines.join("\n");
+}
+
+
+// ========================================
+// 已完成通知：給報修人
+// ========================================
+
+function buildCompletedMessage(
+  repair
+) {
+
+  const lines = [
+
+    "✅ 報修案件已完成",
+
+    "",
+
+    `案件編號：#${repair.recordId}`,
+
+    `設備名稱：${repair.equipmentName || "未設定"}`,
+
+    `設備編號：${repair.equipmentNumber || "未填寫"}`,
+
+    `所在位置：${repair.location || "未設定"}`,
+
+    `維修人員：${repair.engineerNames || "未設定"}`,
+
+    "處理狀態：已完成"
+  ];
+
+
+  if (
+    repair.actualCompletionDate
+  ) {
+
+    lines.push(
+
+      `實際完成日期：${formatDate(
+        repair.actualCompletionDate
+      )}`
+    );
+  }
+
+
+  if (
+    repair.maintenanceResult
+  ) {
+
+    lines.push(
+
+      "",
+
+      "維修結果：",
+
+      repair.maintenanceResult
+    );
+
+  } else {
+
+    lines.push(
+
+      "",
+
+      "維修結果：未填寫"
+    );
+  }
+
+
+  lines.push(
+
+    "",
+
+    "您可以進入「設備報修系統 → 案件查詢」查看完整紀錄。"
+  );
+
+
+  return lines.join("\n");
+}
+
+
+// ========================================
+// 通知 LINE WORKS 使用者
+// ========================================
+
+async function sendNotification(
+  userId,
+  message,
+  target,
+  recordId
+) {
+
+  if (!userId) {
+
+    return {
+      success: false,
+      skipped: true,
+      target,
+      reason:
+        "缺少 LINE WORKS User ID"
+    };
+  }
+
+
+  try {
+
+    await sendTextMessage(
+      userId,
+      message
+    );
+
+
+    console.log(
+      "kintone webhook notification sent:",
+      {
+        recordId,
+        target,
+        userId
+      }
+    );
+
+
+    return {
+      success: true,
+      target
+    };
+
+
+  } catch (error) {
+
+    console.error(
+      "kintone webhook notification failed:",
+      {
+        recordId,
+        target,
+        userId,
+        message:
+          error.message
+      }
+    );
+
+
+    return {
+      success: false,
+      target,
+      error:
+        error.message
+    };
+  }
+}
+
+
+// ========================================
 // POST /api/kintone-webhook
 // ========================================
 
@@ -163,7 +434,7 @@ router.post(
   ) => {
 
     // ====================================
-    // Webhook Secret 驗證
+    // 驗證 Webhook Secret
     // ====================================
 
     const expectedSecret =
@@ -177,17 +448,12 @@ router.post(
 
     if (!expectedSecret) {
 
-      console.error(
-        "KINTONE_WEBHOOK_SECRET 尚未設定"
-      );
-
-
       return res
         .status(503)
         .json({
           success: false,
           message:
-            "Webhook Secret 尚未設定"
+            "KINTONE_WEBHOOK_SECRET 尚未設定"
         });
     }
 
@@ -196,11 +462,6 @@ router.post(
       suppliedSecret !==
       expectedSecret
     ) {
-
-      console.warn(
-        "Invalid kintone webhook secret"
-      );
-
 
       return res
         .status(401)
@@ -234,31 +495,10 @@ router.post(
       }
 
 
-      // ==================================
-      // Webhook 類型
-      // ==================================
-
       const webhookType =
         webhook.type || "";
 
 
-      console.log(
-        "kintone webhook received:",
-        {
-          type:
-            webhookType,
-
-          appId:
-            webhook.app?.id,
-
-          recordId:
-            webhook.id ||
-            record.$id?.value
-        }
-      );
-
-
-      // 只處理新增、編輯、狀態更新
       const supportedTypes = [
 
         "ADD_RECORD",
@@ -300,7 +540,8 @@ router.post(
       const engineerNames =
         maintenanceStaff
           .map(
-            (user) => user.name
+            (user) =>
+              user.name
           )
           .filter(Boolean)
           .join("、");
@@ -373,251 +614,336 @@ router.post(
             "maintenance_lineworks_user_id"
           ),
 
-        engineerNames
-      };
+        engineerNames,
 
+        expectedCompletionDate:
+          getFieldValue(
+            record,
+            "expected_completion_date"
+          ),
 
-      // ==================================
-      // 判斷是否已指派工程師
-      // ==================================
+        actualCompletionDate:
+          getFieldValue(
+            record,
+            "actual_completion_date"
+          ),
 
-      if (
-        !repair
-          .engineerLineworksUserId
-      ) {
-
-        console.log(
-          "kintone webhook skipped: engineer LINE WORKS User ID is empty",
-          {
-            recordId:
-              repair.recordId
-          }
-        );
-
-
-        return res.json({
-          success: true,
-          skipped: true,
-          reason:
-            "尚未指派 LINE WORKS 工程師"
-        });
-      }
-
-
-      /*
-        只有以下狀態發送「新維修任務」：
-
-        待分派工程師處理
-        已指派工程師
-
-        如果管理者只選工程師，
-        尚未手動修改狀態，
-        仍會通知工程師。
-      */
-
-      const assignmentStatuses = [
-
-        "待分派工程師處理",
-
-        "已指派工程師"
-      ];
-
-
-      if (
-        repair.status &&
-        !assignmentStatuses.includes(
-          repair.status
-        )
-      ) {
-
-        return res.json({
-          success: true,
-          skipped: true,
-          reason:
-            `目前狀態為「${repair.status}」，不發送工程師指派通知`
-        });
-      }
-
-
-      const notifications = {
-
-        engineerNotificationSent:
-          false,
-
-        reporterNotificationSent:
-          false,
-
-        errors:
-          []
-      };
-
-
-      // ==================================
-      // 通知工程師
-      // ==================================
-
-      try {
-
-        await sendTextMessage(
-
-          repair
-            .engineerLineworksUserId,
-
-          buildEngineerAssignmentMessage(
-            repair
+        maintenanceResult:
+          getFieldValue(
+            record,
+            "maintenance_result"
           )
-        );
+      };
 
 
-        notifications
-          .engineerNotificationSent =
-          true;
-
-
-        console.log(
-          "Engineer assignment notification sent:",
-          {
-            recordId:
-              repair.recordId,
-
-            engineerUserId:
-              repair
-                .engineerLineworksUserId
-          }
-        );
-
-
-      } catch (error) {
-
-        console.error(
-          "Engineer assignment notification failed:",
-          {
-            recordId:
-              repair.recordId,
-
-            message:
-              error.message
-          }
-        );
-
-
-        notifications
-          .errors
-          .push({
-            target:
-              "engineer",
-
-            message:
-              error.message
-          });
-      }
-
-
-      // ==================================
-      // 通知報修人
-      // ==================================
-
-      if (
-        repair
-          .reporterLineworksUserId &&
-        repair
-          .reporterLineworksUserId !==
-        repair
-          .engineerLineworksUserId
-      ) {
-
-        try {
-
-          await sendTextMessage(
-
+      console.log(
+        "kintone webhook received:",
+        {
+          webhookType,
+          recordId:
+            repair.recordId,
+          status:
+            repair.status,
+          reporterUserId:
             repair
               .reporterLineworksUserId,
+          engineerUserId:
+            repair
+              .engineerLineworksUserId
+        }
+      );
 
-            buildReporterAssignmentMessage(
+
+      // ==================================
+      // 通知結果
+      // ==================================
+
+      const notifications = [];
+
+
+      // ==================================
+      // 待分派工程師處理
+      // ==================================
+
+      if (
+        repair.status ===
+        "待分派工程師處理"
+      ) {
+
+        /*
+          若維修人員已經被選取，
+          但狀態尚未改成已指派工程師，
+          仍通知工程師。
+        */
+
+        if (
+          repair
+            .engineerLineworksUserId
+        ) {
+
+          notifications.push(
+
+            await sendNotification(
+
               repair
+                .engineerLineworksUserId,
+
+              buildEngineerAssignmentMessage(
+                repair
+              ),
+
+              "engineer",
+
+              repair.recordId
             )
           );
 
 
-          notifications
-            .reporterNotificationSent =
-            true;
+          if (
+            repair
+              .reporterLineworksUserId &&
+            repair
+              .reporterLineworksUserId !==
+            repair
+              .engineerLineworksUserId
+          ) {
 
+            notifications.push(
 
-          console.log(
-            "Reporter assignment notification sent:",
-            {
-              recordId:
-                repair.recordId,
+              await sendNotification(
 
-              reporterUserId:
                 repair
-                  .reporterLineworksUserId
-            }
-          );
+                  .reporterLineworksUserId,
 
+                buildReporterAssignmentMessage(
+                  repair
+                ),
 
-        } catch (error) {
-
-          console.error(
-            "Reporter assignment notification failed:",
-            {
-              recordId:
-                repair.recordId,
-
-              message:
-                error.message
-            }
-          );
-
-
-          notifications
-            .errors
-            .push({
-              target:
                 "reporter",
 
-              message:
-                error.message
-            });
+                repair.recordId
+              )
+            );
+          }
+
+
+          return res.json({
+            success: true,
+            message:
+              "工程師指派通知已處理",
+            recordId:
+              repair.recordId,
+            status:
+              repair.status,
+            notifications
+          });
         }
 
-      } else if (
-        repair
-          .reporterLineworksUserId ===
-        repair
-          .engineerLineworksUserId
-      ) {
 
-        notifications
-          .reporterNotificationSent =
-          true;
-
-
-        console.log(
-          "Reporter notification skipped because reporter and engineer are the same user:",
-          {
-            recordId:
-              repair.recordId
-          }
-        );
+        return res.json({
+          success: true,
+          skipped: true,
+          reason:
+            "案件尚未指派工程師"
+        });
       }
 
 
       // ==================================
-      // Webhook 回應
+      // 已指派工程師
+      // ==================================
+
+      if (
+        repair.status ===
+        "已指派工程師"
+      ) {
+
+        notifications.push(
+
+          await sendNotification(
+
+            repair
+              .engineerLineworksUserId,
+
+            buildEngineerAssignmentMessage(
+              repair
+            ),
+
+            "engineer",
+
+            repair.recordId
+          )
+        );
+
+
+        if (
+          repair
+            .reporterLineworksUserId !==
+          repair
+            .engineerLineworksUserId
+        ) {
+
+          notifications.push(
+
+            await sendNotification(
+
+              repair
+                .reporterLineworksUserId,
+
+              buildReporterAssignmentMessage(
+                repair
+              ),
+
+              "reporter",
+
+              repair.recordId
+            )
+          );
+        }
+
+
+        return res.json({
+          success: true,
+          message:
+            "工程師指派通知已處理",
+          recordId:
+            repair.recordId,
+          status:
+            repair.status,
+          notifications
+        });
+      }
+
+
+      // ==================================
+      // 維修中
+      // ==================================
+
+      if (
+        repair.status ===
+        "維修中"
+      ) {
+
+        notifications.push(
+
+          await sendNotification(
+
+            repair
+              .reporterLineworksUserId,
+
+            buildInProgressMessage(
+              repair
+            ),
+
+            "reporter",
+
+            repair.recordId
+          )
+        );
+
+
+        return res.json({
+          success: true,
+          message:
+            "維修進度通知已處理",
+          recordId:
+            repair.recordId,
+          status:
+            repair.status,
+          notifications
+        });
+      }
+
+
+      // ==================================
+      // 無法維修
+      // ==================================
+
+      if (
+        repair.status ===
+        "無法維修"
+      ) {
+
+        notifications.push(
+
+          await sendNotification(
+
+            repair
+              .reporterLineworksUserId,
+
+            buildUnableToRepairMessage(
+              repair
+            ),
+
+            "reporter",
+
+            repair.recordId
+          )
+        );
+
+
+        return res.json({
+          success: true,
+          message:
+            "無法維修通知已處理",
+          recordId:
+            repair.recordId,
+          status:
+            repair.status,
+          notifications
+        });
+      }
+
+
+      // ==================================
+      // 已完成
+      // ==================================
+
+      if (
+        repair.status ===
+        "已完成"
+      ) {
+
+        notifications.push(
+
+          await sendNotification(
+
+            repair
+              .reporterLineworksUserId,
+
+            buildCompletedMessage(
+              repair
+            ),
+
+            "reporter",
+
+            repair.recordId
+          )
+        );
+
+
+        return res.json({
+          success: true,
+          message:
+            "案件完成通知已處理",
+          recordId:
+            repair.recordId,
+          status:
+            repair.status,
+          notifications
+        });
+      }
+
+
+      // ==================================
+      // 不支援的狀態
       // ==================================
 
       return res.json({
         success: true,
-
-        message:
-          "kintone 工程師指派通知已處理",
-
-        recordId:
-          repair.recordId,
-
-        notifications
+        skipped: true,
+        reason:
+          `目前狀態「${repair.status}」未設定 Bot 通知`
       });
 
 
@@ -629,11 +955,6 @@ router.post(
         error
       );
 
-
-      /*
-        回傳 200，避免通知錯誤造成
-        kintone 重複傳送 Webhook。
-      */
 
       return res.json({
         success: false,
