@@ -238,6 +238,142 @@ async function uploadRichMenuImage() {
     );
 
 
+  const accessToken =
+    await getAccessToken();
+
+
+  // ======================================
+  // LINE WORKS Storage 要求 multipart/form-data
+  // ======================================
+
+  const FormData =
+    require("form-data");
+
+
+  const form =
+    new FormData();
+
+
+  // 官方要求：
+  // resourceName
+  // Filedata
+
+  form.append(
+    "resourceName",
+    uploadResource.fileName
+  );
+
+
+  form.append(
+    "Filedata",
+    imageBuffer,
+    {
+      filename:
+        uploadResource.fileName,
+
+      contentType:
+        "image/png",
+
+      knownLength:
+        imageBuffer.length
+    }
+  );
+
+
+  try {
+
+    const response =
+      await axios.post(
+
+        uploadResource.uploadUrl,
+
+        form,
+
+        {
+          headers: {
+
+            Authorization:
+              `Bearer ${accessToken}`,
+
+            ...form.getHeaders()
+          },
+
+          maxBodyLength:
+            Infinity,
+
+          maxContentLength:
+            Infinity,
+
+          timeout:
+            30000
+        }
+      );
+
+
+    console.log(
+      "Rich Menu image uploaded:",
+      {
+        fileId:
+          uploadResource.fileId,
+
+        fileSize:
+          uploadResource.fileSize,
+
+        status:
+          response.status
+      }
+    );
+
+
+    return {
+
+      fileId:
+        response.data?.fileId ||
+        uploadResource.fileId,
+
+      fileSize:
+        uploadResource.fileSize
+    };
+
+
+  } catch (error) {
+
+    console.error(
+      "Rich Menu image upload failed:",
+      {
+
+        status:
+          error.response?.status,
+
+        data:
+          error.response?.data,
+
+        message:
+          error.message,
+
+        host:
+          (() => {
+
+            try {
+
+              return new URL(
+                uploadResource.uploadUrl
+              ).host;
+
+            } catch {
+
+              return "unknown";
+            }
+
+          })()
+      }
+    );
+
+
+    throw error;
+  }
+}
+
   /*
     LINE WORKS Storage Upload
     
