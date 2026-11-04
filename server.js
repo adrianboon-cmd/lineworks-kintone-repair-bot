@@ -12,6 +12,9 @@ const engineerRepairRoutes =
 const botTestRoutes =
   require("./routes/botTest");
 
+const richMenuSetupRoutes =
+  require("./routes/richMenuSetup");
+
 const app = express();
 
 const PORT =
@@ -53,6 +56,17 @@ app.use(
   engineerRepairRoutes
 );
 
+const repairRoutes =
+  require("./routes/repairs");
+
+const engineerRepairRoutes =
+  require("./routes/engineerRepairs");
+
+const botTestRoutes =
+  require("./routes/botTest");
+
+const richMenuSetupRoutes =
+  require("./routes/richMenuSetup");
 
 // ========================================
 // Health check
