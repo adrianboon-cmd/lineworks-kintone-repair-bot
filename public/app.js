@@ -21,23 +21,681 @@ const ALLOWED_TYPES = [
 
 
 // ========================================
+// i18n
+// ========================================
+
+const i18n =
+  window.RepairI18n;
+
+
+function t(
+  key,
+  fallback = ""
+) {
+
+  if (
+    i18n &&
+    typeof i18n.t === "function"
+  ) {
+
+    return i18n.t(
+      key,
+      fallback
+    );
+  }
+
+
+  return fallback || key;
+}
+
+
+function currentLanguage() {
+
+  if (
+    i18n &&
+    typeof i18n.getLanguage ===
+      "function"
+  ) {
+
+    return i18n.getLanguage();
+  }
+
+
+  return "zh-TW";
+}
+
+
+function translatedStatus(
+  status
+) {
+
+  if (
+    i18n &&
+    typeof i18n.translateStatus ===
+      "function"
+  ) {
+
+    return i18n.translateStatus(
+      status
+    );
+  }
+
+
+  return status || "";
+}
+
+
+// ========================================
+// 動態翻譯
+// ========================================
+
+const DYNAMIC_TEXT = {
+
+  "zh-TW": {
+
+    unnamedEquipment:
+      "未命名設備",
+
+    statusNotSet:
+      "狀態未設定",
+
+    notAssigned:
+      "尚未指派",
+
+    applicant:
+      "報修人",
+
+    equipmentInfo:
+      "設備資訊",
+
+    faultInfo:
+      "故障資訊",
+
+    maintenanceInfo:
+      "維修資訊",
+
+    applicationInfo:
+      "申請資訊",
+
+    maintenanceTask:
+      "維修案件",
+
+    searching:
+      "查詢中...",
+
+    loginChecking:
+      "LINE WORKS 登入確認中...",
+
+    loginUnavailable:
+      "無法取得登入資訊",
+
+    userInfoUnavailable:
+      "尚未取得 LINE WORKS 使用者資訊",
+
+    engineerIdentityUnavailable:
+      "無法確認 LINE WORKS 工程師身分",
+
+    repairSubmitFailed:
+      "報修資料送出失敗",
+
+    repairFailed:
+      "報修失敗",
+
+    repairQueryFailed:
+      "案件查詢失敗",
+
+    engineerQueryFailed:
+      "維修任務查詢失敗",
+
+    progressUpdateFailed:
+      "維修進度更新失敗",
+
+    updateFailed:
+      "更新失敗",
+
+    updateSuccess:
+      "維修進度已更新",
+
+    recordNotFound:
+      "找不到案件資料",
+
+    engineerRecordNotFound:
+      "找不到維修案件資料",
+
+    recordIdNotFound:
+      "找不到案件編號",
+
+    selectStatus:
+      "請選擇處理狀態",
+
+    completedResultRequired:
+      "案件設為已完成時，請填寫維修結果",
+
+    selectEquipmentCategory:
+      "請選擇設備類別",
+
+    enterEquipmentName:
+      "請填寫設備名稱",
+
+    selectLocation:
+      "請選擇所在位置",
+
+    enterDescription:
+      "請填寫故障描述",
+
+    maximumPhotos:
+      "最多只能上傳 3 張圖片",
+
+    unsupportedImage:
+      "不支援圖片格式",
+
+    supportedImageTypes:
+      "請使用 JPG、PNG 或 WebP",
+
+    imageTooLarge:
+      "超過 10 MB",
+
+    serverResponseError:
+      "伺服器回傳格式錯誤",
+
+    repairSuccess:
+      "報修成功！",
+
+    photoAlt:
+      "故障照片",
+
+    maintenanceResultEmpty:
+      "尚無維修結果",
+
+    lineWorksInitTimeout:
+      "LINE WORKS 登入初始化逾時。",
+
+    reopenFromLineWorks:
+      "請關閉此頁面後，重新從 LINE WORKS 開啟報修系統。",
+
+    woffSdkUnavailable:
+      "WOFF SDK 尚未載入",
+
+    userIdUnavailable:
+      "無法取得 LINE WORKS User ID",
+
+    userNameUnavailable:
+      "無法取得 LINE WORKS 使用者名稱",
+
+    userInfoFailed:
+      "LINE WORKS 使用者資訊取得失敗",
+
+    errorCode:
+      "錯誤代碼",
+
+    errorMessage:
+      "錯誤訊息"
+  },
+
+
+  "ja-JP": {
+
+    unnamedEquipment:
+      "名称未設定の設備",
+
+    statusNotSet:
+      "ステータス未設定",
+
+    notAssigned:
+      "未割当",
+
+    applicant:
+      "申請者",
+
+    equipmentInfo:
+      "設備情報",
+
+    faultInfo:
+      "故障情報",
+
+    maintenanceInfo:
+      "修理情報",
+
+    applicationInfo:
+      "申請情報",
+
+    maintenanceTask:
+      "修理案件",
+
+    searching:
+      "検索中...",
+
+    loginChecking:
+      "LINE WORKSログイン確認中...",
+
+    loginUnavailable:
+      "ログイン情報を取得できません",
+
+    userInfoUnavailable:
+      "LINE WORKSユーザー情報を取得できません",
+
+    engineerIdentityUnavailable:
+      "LINE WORKS上の担当者を確認できません",
+
+    repairSubmitFailed:
+      "修理依頼の送信に失敗しました",
+
+    repairFailed:
+      "修理依頼に失敗しました",
+
+    repairQueryFailed:
+      "案件の取得に失敗しました",
+
+    engineerQueryFailed:
+      "修理タスクの取得に失敗しました",
+
+    progressUpdateFailed:
+      "修理状況の更新に失敗しました",
+
+    updateFailed:
+      "更新に失敗しました",
+
+    updateSuccess:
+      "修理状況を更新しました",
+
+    recordNotFound:
+      "案件データが見つかりません",
+
+    engineerRecordNotFound:
+      "修理案件データが見つかりません",
+
+    recordIdNotFound:
+      "案件番号が見つかりません",
+
+    selectStatus:
+      "対応状況を選択してください",
+
+    completedResultRequired:
+      "対応完了にする場合は、対応結果を入力してください",
+
+    selectEquipmentCategory:
+      "設備カテゴリーを選択してください",
+
+    enterEquipmentName:
+      "設備名を入力してください",
+
+    selectLocation:
+      "設置場所を選択してください",
+
+    enterDescription:
+      "故障内容を入力してください",
+
+    maximumPhotos:
+      "写真は最大3枚までアップロードできます",
+
+    unsupportedImage:
+      "対応していない画像形式です",
+
+    supportedImageTypes:
+      "JPG、PNG、WebPを使用してください",
+
+    imageTooLarge:
+      "が10MBを超えています",
+
+    serverResponseError:
+      "サーバーの応答形式が正しくありません",
+
+    repairSuccess:
+      "修理依頼を受け付けました。",
+
+    photoAlt:
+      "故障写真",
+
+    maintenanceResultEmpty:
+      "対応結果はまだありません",
+
+    lineWorksInitTimeout:
+      "LINE WORKSの初期化がタイムアウトしました。",
+
+    reopenFromLineWorks:
+      "この画面を閉じ、LINE WORKSからもう一度開いてください。",
+
+    woffSdkUnavailable:
+      "WOFF SDKが読み込まれていません",
+
+    userIdUnavailable:
+      "LINE WORKS User IDを取得できません",
+
+    userNameUnavailable:
+      "LINE WORKSユーザー名を取得できません",
+
+    userInfoFailed:
+      "LINE WORKSユーザー情報の取得に失敗しました",
+
+    errorCode:
+      "エラーコード",
+
+    errorMessage:
+      "エラーメッセージ"
+  },
+
+
+  "en-US": {
+
+    unnamedEquipment:
+      "Unnamed Equipment",
+
+    statusNotSet:
+      "Status Not Set",
+
+    notAssigned:
+      "Not Assigned",
+
+    applicant:
+      "Applicant",
+
+    equipmentInfo:
+      "Equipment Information",
+
+    faultInfo:
+      "Fault Information",
+
+    maintenanceInfo:
+      "Maintenance Information",
+
+    applicationInfo:
+      "Request Information",
+
+    maintenanceTask:
+      "Repair Case",
+
+    searching:
+      "Searching...",
+
+    loginChecking:
+      "Confirming LINE WORKS login...",
+
+    loginUnavailable:
+      "Unable to retrieve login information",
+
+    userInfoUnavailable:
+      "LINE WORKS user information is unavailable",
+
+    engineerIdentityUnavailable:
+      "Unable to verify the LINE WORKS engineer",
+
+    repairSubmitFailed:
+      "Failed to submit the repair request",
+
+    repairFailed:
+      "Repair request failed",
+
+    repairQueryFailed:
+      "Failed to load repair cases",
+
+    engineerQueryFailed:
+      "Failed to load repair tasks",
+
+    progressUpdateFailed:
+      "Failed to update repair progress",
+
+    updateFailed:
+      "Update failed",
+
+    updateSuccess:
+      "Repair progress updated",
+
+    recordNotFound:
+      "Case data not found",
+
+    engineerRecordNotFound:
+      "Repair case data not found",
+
+    recordIdNotFound:
+      "Case number not found",
+
+    selectStatus:
+      "Select a status",
+
+    completedResultRequired:
+      "Enter the maintenance result before marking the case as completed",
+
+    selectEquipmentCategory:
+      "Select an equipment category",
+
+    enterEquipmentName:
+      "Enter the equipment name",
+
+    selectLocation:
+      "Select a location",
+
+    enterDescription:
+      "Enter the fault description",
+
+    maximumPhotos:
+      "A maximum of 3 photos can be uploaded",
+
+    unsupportedImage:
+      "Unsupported image format",
+
+    supportedImageTypes:
+      "Use JPG, PNG, or WebP",
+
+    imageTooLarge:
+      "exceeds 10 MB",
+
+    serverResponseError:
+      "Invalid server response format",
+
+    repairSuccess:
+      "Repair request submitted successfully.",
+
+    photoAlt:
+      "Fault Photo",
+
+    maintenanceResultEmpty:
+      "No maintenance result is available",
+
+    lineWorksInitTimeout:
+      "LINE WORKS initialization timed out.",
+
+    reopenFromLineWorks:
+      "Close this page and reopen the repair system from LINE WORKS.",
+
+    woffSdkUnavailable:
+      "WOFF SDK is not loaded",
+
+    userIdUnavailable:
+      "Unable to retrieve LINE WORKS User ID",
+
+    userNameUnavailable:
+      "Unable to retrieve the LINE WORKS user name",
+
+    userInfoFailed:
+      "Failed to retrieve LINE WORKS user information",
+
+    errorCode:
+      "Error Code",
+
+    errorMessage:
+      "Error Message"
+  }
+};
+
+
+function dt(
+  key
+) {
+
+  const language =
+    currentLanguage();
+
+
+  return (
+    DYNAMIC_TEXT[
+      language
+    ]?.[key] ||
+    DYNAMIC_TEXT[
+      "zh-TW"
+    ]?.[key] ||
+    key
+  );
+}
+
+
+// ========================================
+// 選項顯示翻譯
+// 底層 value 保持中文
+// ========================================
+
+const OPTION_TRANSLATIONS = {
+
+  "zh-TW": {
+
+    equipmentCategories: {
+      "辦公設備": "辦公設備",
+      "電腦及資訊設備": "電腦及資訊設備",
+      "網路及通訊設備": "網路及通訊設備",
+      "生產設備": "生產設備",
+      "空調及機電設備": "空調及機電設備",
+      "門禁及監控設備": "門禁及監控設備",
+      "其他": "其他"
+    },
+
+    locations: {
+      "總公司 6F 辦公室":
+        "總公司 6F 辦公室",
+      "總公司 7F 辦公室":
+        "總公司 7F 辦公室",
+      "總公司 公共區域":
+        "總公司 公共區域",
+      "桃園廠 產線 A":
+        "桃園廠 產線 A",
+      "桃園廠 產線 B":
+        "桃園廠 產線 B",
+      "桃園廠 倉庫":
+        "桃園廠 倉庫",
+      "桃園廠 辦公室":
+        "桃園廠 辦公室",
+      "其他":
+        "其他位置"
+    }
+  },
+
+
+  "ja-JP": {
+
+    equipmentCategories: {
+      "辦公設備": "オフィス機器",
+      "電腦及資訊設備": "PC・情報機器",
+      "網路及通訊設備": "ネットワーク・通信機器",
+      "生產設備": "生産設備",
+      "空調及機電設備": "空調・電気設備",
+      "門禁及監控設備": "入退室・監視設備",
+      "其他": "その他"
+    },
+
+    locations: {
+      "總公司 6F 辦公室":
+        "本社 6F オフィス",
+      "總公司 7F 辦公室":
+        "本社 7F オフィス",
+      "總公司 公共區域":
+        "本社 共用エリア",
+      "桃園廠 產線 A":
+        "桃園工場 ラインA",
+      "桃園廠 產線 B":
+        "桃園工場 ラインB",
+      "桃園廠 倉庫":
+        "桃園工場 倉庫",
+      "桃園廠 辦公室":
+        "桃園工場 オフィス",
+      "其他":
+        "その他の場所"
+    }
+  },
+
+
+  "en-US": {
+
+    equipmentCategories: {
+      "辦公設備": "Office Equipment",
+      "電腦及資訊設備":
+        "Computers and IT Equipment",
+      "網路及通訊設備":
+        "Network and Communication Equipment",
+      "生產設備": "Production Equipment",
+      "空調及機電設備":
+        "HVAC and Electrical Equipment",
+      "門禁及監控設備":
+        "Access Control and Surveillance",
+      "其他": "Other"
+    },
+
+    locations: {
+      "總公司 6F 辦公室":
+        "Head Office 6F",
+      "總公司 7F 辦公室":
+        "Head Office 7F",
+      "總公司 公共區域":
+        "Head Office Common Area",
+      "桃園廠 產線 A":
+        "Taoyuan Factory Line A",
+      "桃園廠 產線 B":
+        "Taoyuan Factory Line B",
+      "桃園廠 倉庫":
+        "Taoyuan Factory Warehouse",
+      "桃園廠 辦公室":
+        "Taoyuan Factory Office",
+      "其他":
+        "Other Location"
+    }
+  }
+};
+
+
+function translateStoredValue(
+  group,
+  value
+) {
+
+  const language =
+    currentLanguage();
+
+
+  return (
+    OPTION_TRANSLATIONS[
+      language
+    ]?.[group]?.[value] ||
+    value ||
+    ""
+  );
+}
+
+
+// ========================================
 // DOM：LINE WORKS 使用者
 // ========================================
 
 const userLoading =
-  document.getElementById("userLoading");
+  document.getElementById(
+    "userLoading"
+  );
 
 const userInfo =
-  document.getElementById("userInfo");
+  document.getElementById(
+    "userInfo"
+  );
 
 const userError =
-  document.getElementById("userError");
+  document.getElementById(
+    "userError"
+  );
 
 const displayUserName =
-  document.getElementById("displayUserName");
+  document.getElementById(
+    "displayUserName"
+  );
 
 const navigation =
-  document.getElementById("navigation");
+  document.getElementById(
+    "navigation"
+  );
 
 
 // ========================================
@@ -80,10 +738,14 @@ const engineerView =
 // ========================================
 
 const repairForm =
-  document.getElementById("repairForm");
+  document.getElementById(
+    "repairForm"
+  );
 
 const imageInput =
-  document.getElementById("images");
+  document.getElementById(
+    "images"
+  );
 
 const imagePreview =
   document.getElementById(
@@ -93,6 +755,16 @@ const imagePreview =
 const submitButton =
   document.getElementById(
     "submitButton"
+  );
+
+const equipmentCategorySelect =
+  document.getElementById(
+    "equipmentCategory"
+  );
+
+const locationSelect =
+  document.getElementById(
+    "location"
   );
 
 
@@ -247,12 +919,14 @@ let engineerRepairsLoaded = false;
 
 
 // ========================================
-// 共用：HTML 安全處理
+// HTML 安全處理
 // ========================================
 
 function escapeHtml(value) {
 
-  return String(value ?? "")
+  return String(
+    value ?? ""
+  )
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -262,21 +936,31 @@ function escapeHtml(value) {
 
 
 // ========================================
-// 共用：日期顯示
+// 日期顯示
 // ========================================
 
 function formatDate(value) {
 
   if (!value) {
-    return "未設定";
+
+    return t(
+      "common.notSet",
+      "未設定"
+    );
   }
+
 
   const parts =
     String(value).split("-");
 
-  if (parts.length !== 3) {
+
+  if (
+    parts.length !== 3
+  ) {
+
     return String(value);
   }
+
 
   return (
     `${parts[0]}/` +
@@ -287,7 +971,7 @@ function formatDate(value) {
 
 
 // ========================================
-// 共用：台北日期
+// 台北日期
 // ========================================
 
 function getTaipeiDate() {
@@ -295,22 +979,32 @@ function getTaipeiDate() {
   return new Intl.DateTimeFormat(
     "en-CA",
     {
-      timeZone: "Asia/Taipei",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit"
+      timeZone:
+        "Asia/Taipei",
+
+      year:
+        "numeric",
+
+      month:
+        "2-digit",
+
+      day:
+        "2-digit"
     }
-  ).format(new Date());
+  ).format(
+    new Date()
+  );
 }
 
 
 // ========================================
-// 共用：案件狀態樣式
+// 案件狀態樣式
 // ========================================
 
 function getStatusClass(status) {
 
   const statusMap = {
+
     "待分派工程師處理":
       "status-waiting",
 
@@ -327,6 +1021,7 @@ function getStatusClass(status) {
       "status-completed"
   };
 
+
   return (
     statusMap[status] ||
     "status-default"
@@ -335,10 +1030,13 @@ function getStatusClass(status) {
 
 
 // ========================================
-// 共用：案件詳情列
+// 案件詳情列
 // ========================================
 
-function detailRow(label, value) {
+function detailRow(
+  label,
+  value
+) {
 
   return `
     <div class="detail-row">
@@ -348,7 +1046,13 @@ function detailRow(label, value) {
       </span>
 
       <strong>
-        ${escapeHtml(value || "未填寫")}
+        ${escapeHtml(
+          value ||
+          t(
+            "common.notEntered",
+            "未填寫"
+          )
+        )}
       </strong>
 
     </div>
@@ -357,7 +1061,7 @@ function detailRow(label, value) {
 
 
 // ========================================
-// 共用：取得 API JSON
+// API JSON
 // ========================================
 
 async function readJsonResponse(
@@ -371,8 +1075,83 @@ async function readJsonResponse(
   } catch {
 
     throw new Error(
-      "伺服器回傳格式錯誤"
+      dt(
+        "serverResponseError"
+      )
     );
+  }
+}
+
+
+// ========================================
+// 更新選項顯示
+// ========================================
+
+function translateSelectOptions() {
+
+  if (
+    equipmentCategorySelect
+  ) {
+
+    Array
+      .from(
+        equipmentCategorySelect.options
+      )
+      .forEach(
+        (option) => {
+
+          if (!option.value) {
+
+            option.textContent =
+              t(
+                "repairForm.selectEquipmentCategory",
+                option.textContent
+              );
+
+            return;
+          }
+
+
+          option.textContent =
+            translateStoredValue(
+              "equipmentCategories",
+              option.value
+            );
+        }
+      );
+  }
+
+
+  if (
+    locationSelect
+  ) {
+
+    Array
+      .from(
+        locationSelect.options
+      )
+      .forEach(
+        (option) => {
+
+          if (!option.value) {
+
+            option.textContent =
+              t(
+                "repairForm.selectLocation",
+                option.textContent
+              );
+
+            return;
+          }
+
+
+          option.textContent =
+            translateStoredValue(
+              "locations",
+              option.value
+            );
+        }
+      );
   }
 }
 
@@ -382,6 +1161,32 @@ async function readJsonResponse(
 // ========================================
 
 async function initializeWOFF() {
+
+  if (
+    i18n &&
+    typeof i18n.applyTranslations ===
+      "function"
+  ) {
+
+    i18n.applyTranslations();
+  }
+
+
+  translateSelectOptions();
+
+
+  userLoading.textContent =
+    t(
+      "common.loading",
+      "載入中..."
+    );
+
+
+  submitButton.textContent =
+    dt(
+      "loginChecking"
+    );
+
 
   const timeoutId =
     setTimeout(
@@ -396,9 +1201,18 @@ async function initializeWOFF() {
             "block";
 
           userError.innerHTML =
-            "LINE WORKS 登入初始化逾時。<br>" +
-            "請關閉此頁面後，重新從 LINE WORKS 開啟報修系統。";
+            `${escapeHtml(
+              dt(
+                "lineWorksInitTimeout"
+              )
+            )}<br>` +
+            escapeHtml(
+              dt(
+                "reopenFromLineWorks"
+              )
+            );
         }
+
       },
       10000
     );
@@ -406,50 +1220,27 @@ async function initializeWOFF() {
 
   try {
 
-    console.log(
-      "Step 1: WOFF init start"
-    );
-
-
     if (
-      typeof woff === "undefined"
+      typeof woff ===
+      "undefined"
     ) {
 
       throw new Error(
-        "WOFF SDK 尚未載入"
+        dt(
+          "woffSdkUnavailable"
+        )
       );
     }
 
 
     await woff.init({
-      woffId: WOFF_ID
+      woffId:
+        WOFF_ID
     });
-
-
-    console.log(
-      "Step 2: WOFF init success"
-    );
-
-
-    console.log(
-      "Is in LINE WORKS client:",
-      woff.isInClient()
-    );
-
-
-    console.log(
-      "Step 3: getProfile start"
-    );
 
 
     const profile =
       await woff.getProfile();
-
-
-    console.log(
-      "Step 4: getProfile success",
-      profile
-    );
 
 
     const userId =
@@ -468,7 +1259,9 @@ async function initializeWOFF() {
     if (!userId) {
 
       throw new Error(
-        "無法取得 LINE WORKS User ID"
+        dt(
+          "userIdUnavailable"
+        )
       );
     }
 
@@ -476,7 +1269,9 @@ async function initializeWOFF() {
     if (!userName) {
 
       throw new Error(
-        "無法取得 LINE WORKS 使用者名稱"
+        dt(
+          "userNameUnavailable"
+        )
       );
     }
 
@@ -513,7 +1308,10 @@ async function initializeWOFF() {
       false;
 
     submitButton.textContent =
-      "送出報修";
+      t(
+        "repairForm.submit",
+        "送出報修"
+      );
 
 
     openRequestedView();
@@ -560,22 +1358,40 @@ async function initializeWOFF() {
 
 
     userError.innerHTML =
-      "LINE WORKS 使用者資訊取得失敗<br><br>" +
-      `Error Code：${escapeHtml(errorCode)}<br>` +
-      `Error Message：${escapeHtml(errorMessage)}`;
+      `${escapeHtml(
+        dt(
+          "userInfoFailed"
+        )
+      )}<br><br>` +
+      `${escapeHtml(
+        dt(
+          "errorCode"
+        )
+      )}：${escapeHtml(
+        errorCode
+      )}<br>` +
+      `${escapeHtml(
+        dt(
+          "errorMessage"
+        )
+      )}：${escapeHtml(
+        errorMessage
+      )}`;
 
 
     submitButton.disabled =
       true;
 
     submitButton.textContent =
-      "無法取得登入資訊";
+      dt(
+        "loginUnavailable"
+      );
   }
 }
 
 
 // ========================================
-// 根據網址顯示指定頁面
+// 開啟網址指定 View
 // ========================================
 
 function openRequestedView() {
@@ -617,7 +1433,7 @@ function openRequestedView() {
 
 
 // ========================================
-// 更新 URL 的 view 參數
+// 更新 View URL
 // ========================================
 
 function updateViewParameter(view) {
@@ -628,7 +1444,9 @@ function updateViewParameter(view) {
     );
 
 
-  if (view === "create") {
+  if (
+    view === "create"
+  ) {
 
     url.searchParams.delete(
       "view"
@@ -779,7 +1597,9 @@ function showEngineerView() {
   });
 
 
-  if (!engineerRepairsLoaded) {
+  if (
+    !engineerRepairsLoaded
+  ) {
 
     loadEngineerRepairs();
   }
@@ -787,7 +1607,7 @@ function showEngineerView() {
 
 
 // ========================================
-// 三個頁籤事件
+// 頁籤事件
 // ========================================
 
 createViewButton.addEventListener(
@@ -814,9 +1634,11 @@ engineerViewButton.addEventListener(
 
 imageInput.addEventListener(
   "change",
+
   () => {
 
-    imagePreview.innerHTML = "";
+    imagePreview.innerHTML =
+      "";
 
 
     const files =
@@ -831,16 +1653,21 @@ imageInput.addEventListener(
     ) {
 
       alert(
-        `最多只能上傳 ${MAX_FILES} 張圖片`
+        dt(
+          "maximumPhotos"
+        )
       );
 
-      imageInput.value = "";
+      imageInput.value =
+        "";
 
       return;
     }
 
 
-    for (const file of files) {
+    for (
+      const file of files
+    ) {
 
       if (
         !ALLOWED_TYPES.includes(
@@ -849,8 +1676,12 @@ imageInput.addEventListener(
       ) {
 
         alert(
-          `不支援圖片格式：${file.name}\n` +
-          "請使用 JPG、PNG 或 WebP"
+          `${dt(
+            "unsupportedImage"
+          )}：${file.name}\n` +
+          dt(
+            "supportedImageTypes"
+          )
         );
 
         imageInput.value =
@@ -869,7 +1700,9 @@ imageInput.addEventListener(
       ) {
 
         alert(
-          `圖片 ${file.name} 超過 10 MB`
+          `${file.name} ${dt(
+            "imageTooLarge"
+          )}`
         );
 
         imageInput.value =
@@ -904,12 +1737,13 @@ imageInput.addEventListener(
         "preview-image";
 
 
-      image.onload = () => {
+      image.onload =
+        () => {
 
-        URL.revokeObjectURL(
-          imageUrl
-        );
-      };
+          URL.revokeObjectURL(
+            imageUrl
+          );
+        };
 
 
       imagePreview.appendChild(
@@ -935,7 +1769,9 @@ repairForm.addEventListener(
     if (!currentUser) {
 
       alert(
-        "尚未取得 LINE WORKS 使用者資訊，請重新開啟報修系統。"
+        dt(
+          "userInfoUnavailable"
+        )
       );
 
       return;
@@ -943,10 +1779,7 @@ repairForm.addEventListener(
 
 
     const equipmentCategory =
-      document
-        .getElementById(
-          "equipmentCategory"
-        )
+      equipmentCategorySelect
         .value
         .trim();
 
@@ -961,10 +1794,7 @@ repairForm.addEventListener(
 
 
     const location =
-      document
-        .getElementById(
-          "location"
-        )
+      locationSelect
         .value
         .trim();
 
@@ -981,7 +1811,9 @@ repairForm.addEventListener(
     if (!equipmentCategory) {
 
       alert(
-        "請填寫設備類別"
+        dt(
+          "selectEquipmentCategory"
+        )
       );
 
       return;
@@ -991,7 +1823,9 @@ repairForm.addEventListener(
     if (!equipmentName) {
 
       alert(
-        "請填寫設備名稱"
+        dt(
+          "enterEquipmentName"
+        )
       );
 
       return;
@@ -1001,7 +1835,9 @@ repairForm.addEventListener(
     if (!location) {
 
       alert(
-        "請填寫所在位置"
+        dt(
+          "selectLocation"
+        )
       );
 
       return;
@@ -1011,7 +1847,9 @@ repairForm.addEventListener(
     if (!description) {
 
       alert(
-        "請填寫故障描述"
+        dt(
+          "enterDescription"
+        )
       );
 
       return;
@@ -1030,7 +1868,9 @@ repairForm.addEventListener(
     ) {
 
       alert(
-        `最多只能上傳 ${MAX_FILES} 張圖片`
+        dt(
+          "maximumPhotos"
+        )
       );
 
       return;
@@ -1041,7 +1881,10 @@ repairForm.addEventListener(
       true;
 
     submitButton.textContent =
-      "送出中...";
+      t(
+        "repairForm.submitting",
+        "送出中..."
+      );
 
 
     try {
@@ -1064,12 +1907,21 @@ repairForm.addEventListener(
       );
 
 
+      formData.append(
+        "language",
+        currentLanguage()
+      );
+
+
       const response =
         await fetch(
           "/api/repairs",
           {
-            method: "POST",
-            body: formData
+            method:
+              "POST",
+
+            body:
+              formData
           }
         );
 
@@ -1084,13 +1936,24 @@ repairForm.addEventListener(
 
         throw new Error(
           result.message ||
-          "報修資料送出失敗"
+          dt(
+            "repairSubmitFailed"
+          )
         );
       }
 
 
       alert(
-        `報修成功！\n案件編號：${result.ticketNumber}`
+        `${t(
+          "repairForm.success",
+          dt(
+            "repairSuccess"
+          )
+        )}\n` +
+        `${t(
+          "repairForm.ticketNumber",
+          "案件編號"
+        )}：${result.ticketNumber}`
       );
 
 
@@ -1098,6 +1961,8 @@ repairForm.addEventListener(
 
       imagePreview.innerHTML =
         "";
+
+      translateSelectOptions();
 
       repairsLoaded =
         false;
@@ -1115,7 +1980,9 @@ repairForm.addEventListener(
 
 
       alert(
-        `報修失敗：${error.message}`
+        `${dt(
+          "repairFailed"
+        )}：${error.message}`
       );
 
 
@@ -1125,7 +1992,10 @@ repairForm.addEventListener(
         false;
 
       submitButton.textContent =
-        "送出報修";
+        t(
+          "repairForm.submit",
+          "送出報修"
+        );
     }
   }
 );
@@ -1140,7 +2010,9 @@ async function loadMyRepairs() {
   if (!currentUser) {
 
     showRepairsError(
-      "尚未取得 LINE WORKS 使用者資訊"
+      dt(
+        "userInfoUnavailable"
+      )
     );
 
     return;
@@ -1163,7 +2035,9 @@ async function loadMyRepairs() {
     true;
 
   refreshRepairsButton.textContent =
-    "查詢中...";
+    dt(
+      "searching"
+    );
 
 
   try {
@@ -1190,13 +2064,16 @@ async function loadMyRepairs() {
 
       throw new Error(
         result.message ||
-        "無法取得報修案件"
+        dt(
+          "repairQueryFailed"
+        )
       );
     }
 
 
     currentRepairs =
-      result.repairs || [];
+      result.repairs ||
+      [];
 
 
     repairsLoaded =
@@ -1204,7 +2081,8 @@ async function loadMyRepairs() {
 
 
     if (
-      currentRepairs.length === 0
+      currentRepairs.length ===
+      0
     ) {
 
       repairsEmpty.style.display =
@@ -1228,7 +2106,9 @@ async function loadMyRepairs() {
 
 
     showRepairsError(
-      `案件查詢失敗：${error.message}`
+      `${dt(
+        "repairQueryFailed"
+      )}：${error.message}`
     );
 
 
@@ -1240,8 +2120,13 @@ async function loadMyRepairs() {
     refreshRepairsButton.disabled =
       false;
 
-    refreshRepairsButton.textContent =
-      "↻ 重新整理";
+    refreshRepairsButton.innerHTML =
+      `↻ ${escapeHtml(
+        t(
+          "common.refresh",
+          "重新整理"
+        )
+      )}`;
   }
 }
 
@@ -1250,7 +2135,9 @@ async function loadMyRepairs() {
 // 我的案件錯誤
 // ========================================
 
-function showRepairsError(message) {
+function showRepairsError(
+  message
+) {
 
   repairsError.textContent =
     message;
@@ -1270,9 +2157,12 @@ function showRepairsError(message) {
 // 顯示我的案件
 // ========================================
 
-function renderMyRepairs(repairs) {
+function renderMyRepairs(
+  repairs
+) {
 
-  repairsList.innerHTML = "";
+  repairsList.innerHTML =
+    "";
 
 
   repairs.forEach(
@@ -1300,29 +2190,56 @@ function renderMyRepairs(repairs) {
           []
         )
           .map(
-            (staff) => staff.name
+            (staff) =>
+              staff.name
           )
           .filter(Boolean)
           .join("、");
 
 
       card.innerHTML = `
+
         <div class="repair-card-header">
 
           <div>
 
             <div class="record-number">
-              案件 #${escapeHtml(repair.recordId)}
+
+              ${escapeHtml(
+                t(
+                  "fields.caseNumber",
+                  "案件編號"
+                )
+              )}
+              #${escapeHtml(
+                repair.recordId
+              )}
+
             </div>
 
             <h3>
-              ${escapeHtml(repair.equipmentName || "未命名設備")}
+              ${escapeHtml(
+                repair.equipmentName ||
+                dt(
+                  "unnamedEquipment"
+                )
+              )}
             </h3>
 
           </div>
 
           <span class="status-badge ${statusClass}">
-            ${escapeHtml(repair.status || "狀態未設定")}
+
+            ${escapeHtml(
+              repair.status
+                ? translatedStatus(
+                    repair.status
+                  )
+                : dt(
+                    "statusNotSet"
+                  )
+            )}
+
           </span>
 
         </div>
@@ -1331,35 +2248,98 @@ function renderMyRepairs(repairs) {
         <div class="repair-card-body">
 
           <div class="repair-info-row">
-            <span>設備編號</span>
+
+            <span>
+              ${escapeHtml(
+                t(
+                  "fields.equipmentNumber",
+                  "設備編號"
+                )
+              )}
+            </span>
 
             <strong>
-              ${escapeHtml(repair.equipmentNumber || "未填寫")}
+              ${escapeHtml(
+                repair.equipmentNumber ||
+                t(
+                  "common.notEntered",
+                  "未填寫"
+                )
+              )}
             </strong>
+
           </div>
 
+
           <div class="repair-info-row">
-            <span>所在位置</span>
+
+            <span>
+              ${escapeHtml(
+                t(
+                  "fields.location",
+                  "所在位置"
+                )
+              )}
+            </span>
 
             <strong>
-              ${escapeHtml(repair.location || "未填寫")}
+              ${escapeHtml(
+                translateStoredValue(
+                  "locations",
+                  repair.location
+                ) ||
+                t(
+                  "common.notEntered",
+                  "未填寫"
+                )
+              )}
             </strong>
+
           </div>
 
+
           <div class="repair-info-row">
-            <span>申請日期</span>
+
+            <span>
+              ${escapeHtml(
+                t(
+                  "fields.applicationDate",
+                  "申請日期"
+                )
+              )}
+            </span>
 
             <strong>
-              ${escapeHtml(formatDate(repair.applicationDate))}
+              ${escapeHtml(
+                formatDate(
+                  repair.applicationDate
+                )
+              )}
             </strong>
+
           </div>
 
+
           <div class="repair-info-row">
-            <span>維修人員</span>
+
+            <span>
+              ${escapeHtml(
+                t(
+                  "fields.maintenanceStaff",
+                  "維修人員"
+                )
+              )}
+            </span>
 
             <strong>
-              ${escapeHtml(staffNames || "尚未指派")}
+              ${escapeHtml(
+                staffNames ||
+                dt(
+                  "notAssigned"
+                )
+              )}
             </strong>
+
           </div>
 
         </div>
@@ -1368,9 +2348,18 @@ function renderMyRepairs(repairs) {
         <button
           class="detail-button"
           type="button"
-          data-record-id="${escapeHtml(repair.recordId)}"
+          data-record-id="${escapeHtml(
+            repair.recordId
+          )}"
         >
-          查看案件詳情
+
+          ${escapeHtml(
+            t(
+              "myRepairs.detail",
+              "查看案件詳情"
+            )
+          )}
+
         </button>
       `;
 
@@ -1404,7 +2393,9 @@ function renderMyRepairs(repairs) {
 // 顯示我的案件詳情
 // ========================================
 
-function showRepairDetail(recordId) {
+function showRepairDetail(
+  recordId
+) {
 
   const repair =
     currentRepairs.find(
@@ -1417,7 +2408,9 @@ function showRepairDetail(recordId) {
   if (!repair) {
 
     alert(
-      "找不到案件資料"
+      dt(
+        "recordNotFound"
+      )
     );
 
     return;
@@ -1430,7 +2423,8 @@ function showRepairDetail(recordId) {
       []
     )
       .map(
-        (staff) => staff.name
+        (staff) =>
+          staff.name
       )
       .filter(Boolean)
       .join("、");
@@ -1441,41 +2435,60 @@ function showRepairDetail(recordId) {
       repair.status
     );
 
-const photoHtml =
-  (
-    repair.photos || []
-  )
-    .map(
-      (photo, index) => {
 
-        const photoUrl =
-          "/api/engineer-repairs/photo" +
-          "?fileKey=" +
-          encodeURIComponent(
-            photo.fileKey
-          );
-
-
-        return `
-          <button
-            class="repair-photo-button"
-            type="button"
-            onclick="window.open('${photoUrl}', '_blank')"
-          >
-            <img
-              class="repair-photo"
-              src="${photoUrl}"
-              alt="故障照片 ${index + 1}"
-              loading="lazy"
-            >
-          </button>
-        `;
-      }
+  const photoHtml =
+    (
+      repair.photos ||
+      []
     )
-    .join("");
-  
+      .map(
+        (
+          photo,
+          index
+        ) => {
+
+          const photoUrl =
+            "/api/engineer-repairs/photo" +
+            "?fileKey=" +
+            encodeURIComponent(
+              photo.fileKey
+            );
+
+
+          return `
+            <button
+              class="repair-photo-button"
+              type="button"
+              data-photo-url="${escapeHtml(
+                photoUrl
+              )}"
+            >
+
+              <img
+                class="repair-photo"
+                src="${escapeHtml(
+                  photoUrl
+                )}"
+                alt="${escapeHtml(
+                  dt(
+                    "photoAlt"
+                  )
+                )} ${index + 1}"
+                loading="lazy"
+              >
+
+            </button>
+          `;
+        }
+      )
+      .join("");
+
+
   detailTitle.textContent =
-    `案件 #${repair.recordId}`;
+    `${t(
+      "fields.caseNumber",
+      "案件編號"
+    )} #${repair.recordId}`;
 
 
   repairDetailContent.innerHTML = `
@@ -1483,7 +2496,15 @@ const photoHtml =
     <div class="detail-status">
 
       <span class="status-badge ${statusClass}">
-        ${escapeHtml(repair.status || "狀態未設定")}
+        ${escapeHtml(
+          repair.status
+            ? translatedStatus(
+                repair.status
+              )
+            : dt(
+                "statusNotSet"
+              )
+        )}
       </span>
 
     </div>
@@ -1491,26 +2512,50 @@ const photoHtml =
 
     <div class="detail-section">
 
-      <h3>設備資訊</h3>
+      <h3>
+        ${escapeHtml(
+          dt(
+            "equipmentInfo"
+          )
+        )}
+      </h3>
 
       ${detailRow(
-        "設備類別",
-        repair.equipmentCategory
+        t(
+          "fields.equipmentCategory",
+          "設備類別"
+        ),
+        translateStoredValue(
+          "equipmentCategories",
+          repair.equipmentCategory
+        )
       )}
 
       ${detailRow(
-        "設備編號",
+        t(
+          "fields.equipmentNumber",
+          "設備編號"
+        ),
         repair.equipmentNumber
       )}
 
       ${detailRow(
-        "設備名稱",
+        t(
+          "fields.equipmentName",
+          "設備名稱"
+        ),
         repair.equipmentName
       )}
 
       ${detailRow(
-        "所在位置",
-        repair.location
+        t(
+          "fields.location",
+          "所在位置"
+        ),
+        translateStoredValue(
+          "locations",
+          repair.location
+        )
       )}
 
     </div>
@@ -1518,62 +2563,112 @@ const photoHtml =
 
     <div class="detail-section">
 
-      <h3>故障資訊</h3>
+      <h3>
+        ${escapeHtml(
+          dt(
+            "faultInfo"
+          )
+        )}
+      </h3>
 
       <div class="detail-text">
-        ${escapeHtml(repair.description || "未填寫")}
+        ${escapeHtml(
+          repair.description ||
+          t(
+            "common.notEntered",
+            "未填寫"
+          )
+        )}
       </div>
 
-<div class="detail-label">
-  故障照片
-</div>
+      <div class="detail-label">
+        ${escapeHtml(
+          t(
+            "common.repairPhotos",
+            "故障照片"
+          )
+        )}
+      </div>
 
-${
-  photoHtml
-    ? `
-      <div class="repair-photo-grid">
-        ${photoHtml}
-      </div>
-    `
-    : `
-      <div class="no-photo">
-        本案件沒有故障照片
-      </div>
-    `
-}
+      ${
+        photoHtml
+          ? `
+            <div class="repair-photo-grid">
+              ${photoHtml}
+            </div>
+          `
+          : `
+            <div class="no-photo">
+              ${escapeHtml(
+                t(
+                  "common.noPhoto",
+                  "本案件沒有故障照片"
+                )
+              )}
+            </div>
+          `
+      }
 
     </div>
 
 
     <div class="detail-section">
 
-      <h3>維修資訊</h3>
+      <h3>
+        ${escapeHtml(
+          dt(
+            "maintenanceInfo"
+          )
+        )}
+      </h3>
 
       ${detailRow(
-        "維修人員",
-        staffNames || "尚未指派"
+        t(
+          "fields.maintenanceStaff",
+          "維修人員"
+        ),
+        staffNames ||
+        dt(
+          "notAssigned"
+        )
       )}
 
       ${detailRow(
-        "預計完成日期",
+        t(
+          "fields.expectedCompletionDate",
+          "預計完成日期"
+        ),
         formatDate(
           repair.expectedCompletionDate
         )
       )}
 
       ${detailRow(
-        "實際完成日期",
+        t(
+          "fields.actualCompletionDate",
+          "實際完成日期"
+        ),
         formatDate(
           repair.actualCompletionDate
         )
       )}
 
       <div class="detail-label">
-        維修結果
+        ${escapeHtml(
+          t(
+            "fields.maintenanceResult",
+            "維修結果"
+          )
+        )}
       </div>
 
       <div class="detail-text">
-        ${escapeHtml(repair.maintenanceResult || "尚無維修結果")}
+        ${escapeHtml(
+          repair.maintenanceResult ||
+          dt(
+            "maintenanceResultEmpty"
+          )
+        )}
       </div>
 
     </div>
@@ -1581,10 +2676,19 @@ ${
 
     <div class="detail-section">
 
-      <h3>申請資訊</h3>
+      <h3>
+        ${escapeHtml(
+          dt(
+            "applicationInfo"
+          )
+        )}
+      </h3>
 
       ${detailRow(
-        "申請日期",
+        t(
+          "fields.applicationDate",
+          "申請日期"
+        ),
         formatDate(
           repair.applicationDate
         )
@@ -1592,6 +2696,27 @@ ${
 
     </div>
   `;
+
+
+  repairDetailContent
+    .querySelectorAll(
+      ".repair-photo-button"
+    )
+    .forEach(
+      (button) => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            window.open(
+              button.dataset.photoUrl,
+              "_blank"
+            );
+          }
+        );
+      }
+    );
 
 
   repairDetailModal.style.display =
@@ -1604,7 +2729,7 @@ ${
 
 
 // ========================================
-// 關閉我的案件詳情
+// 關閉案件詳情
 // ========================================
 
 function closeRepairDetail() {
@@ -1655,7 +2780,9 @@ async function loadEngineerRepairs() {
   if (!currentUser) {
 
     showEngineerError(
-      "尚未取得 LINE WORKS 使用者資訊"
+      dt(
+        "userInfoUnavailable"
+      )
     );
 
     return;
@@ -1678,7 +2805,9 @@ async function loadEngineerRepairs() {
     true;
 
   refreshEngineerButton.textContent =
-    "查詢中...";
+    dt(
+      "searching"
+    );
 
 
   try {
@@ -1705,13 +2834,16 @@ async function loadEngineerRepairs() {
 
       throw new Error(
         result.message ||
-        "無法取得維修任務"
+        dt(
+          "engineerQueryFailed"
+        )
       );
     }
 
 
     engineerRepairs =
-      result.repairs || [];
+      result.repairs ||
+      [];
 
 
     engineerRepairsLoaded =
@@ -1719,7 +2851,8 @@ async function loadEngineerRepairs() {
 
 
     if (
-      engineerRepairs.length === 0
+      engineerRepairs.length ===
+      0
     ) {
 
       engineerEmpty.style.display =
@@ -1743,7 +2876,9 @@ async function loadEngineerRepairs() {
 
 
     showEngineerError(
-      `維修任務查詢失敗：${error.message}`
+      `${dt(
+        "engineerQueryFailed"
+      )}：${error.message}`
     );
 
 
@@ -1755,8 +2890,13 @@ async function loadEngineerRepairs() {
     refreshEngineerButton.disabled =
       false;
 
-    refreshEngineerButton.textContent =
-      "↻ 重新整理";
+    refreshEngineerButton.innerHTML =
+      `↻ ${escapeHtml(
+        t(
+          "common.refresh",
+          "重新整理"
+        )
+      )}`;
   }
 }
 
@@ -1765,7 +2905,9 @@ async function loadEngineerRepairs() {
 // 工程師任務錯誤
 // ========================================
 
-function showEngineerError(message) {
+function showEngineerError(
+  message
+) {
 
   engineerError.textContent =
     message;
@@ -1813,22 +2955,45 @@ function renderEngineerRepairs(
 
 
       card.innerHTML = `
+
         <div class="repair-card-header">
 
           <div>
 
             <div class="record-number">
-              維修案件 #${escapeHtml(repair.recordId)}
+
+              ${escapeHtml(
+                dt(
+                  "maintenanceTask"
+                )
+              )}
+              #${escapeHtml(
+                repair.recordId
+              )}
+
             </div>
 
             <h3>
-              ${escapeHtml(repair.equipmentName || "未命名設備")}
+              ${escapeHtml(
+                repair.equipmentName ||
+                dt(
+                  "unnamedEquipment"
+                )
+              )}
             </h3>
 
           </div>
 
           <span class="status-badge ${statusClass}">
-            ${escapeHtml(repair.status || "狀態未設定")}
+            ${escapeHtml(
+              repair.status
+                ? translatedStatus(
+                    repair.status
+                  )
+                : dt(
+                    "statusNotSet"
+                  )
+            )}
           </span>
 
         </div>
@@ -1837,46 +3002,120 @@ function renderEngineerRepairs(
         <div class="repair-card-body">
 
           <div class="repair-info-row">
-            <span>報修人</span>
+
+            <span>
+              ${escapeHtml(
+                dt(
+                  "applicant"
+                )
+              )}
+            </span>
 
             <strong>
-              ${escapeHtml(repair.applicant || "未填寫")}
+              ${escapeHtml(
+                repair.applicant ||
+                t(
+                  "common.notEntered",
+                  "未填寫"
+                )
+              )}
             </strong>
+
           </div>
 
+
           <div class="repair-info-row">
-            <span>所在位置</span>
+
+            <span>
+              ${escapeHtml(
+                t(
+                  "fields.location",
+                  "所在位置"
+                )
+              )}
+            </span>
 
             <strong>
-              ${escapeHtml(repair.location || "未填寫")}
+              ${escapeHtml(
+                translateStoredValue(
+                  "locations",
+                  repair.location
+                ) ||
+                t(
+                  "common.notEntered",
+                  "未填寫"
+                )
+              )}
             </strong>
+
           </div>
 
+
           <div class="repair-info-row">
-            <span>設備編號</span>
+
+            <span>
+              ${escapeHtml(
+                t(
+                  "fields.equipmentNumber",
+                  "設備編號"
+                )
+              )}
+            </span>
 
             <strong>
-              ${escapeHtml(repair.equipmentNumber || "未填寫")}
+              ${escapeHtml(
+                repair.equipmentNumber ||
+                t(
+                  "common.notEntered",
+                  "未填寫"
+                )
+              )}
             </strong>
+
           </div>
 
+
           <div class="repair-info-row">
-            <span>申請日期</span>
+
+            <span>
+              ${escapeHtml(
+                t(
+                  "fields.applicationDate",
+                  "申請日期"
+                )
+              )}
+            </span>
 
             <strong>
-              ${escapeHtml(formatDate(repair.applicationDate))}
+              ${escapeHtml(
+                formatDate(
+                  repair.applicationDate
+                )
+              )}
             </strong>
+
           </div>
 
 
           <div class="engineer-description">
 
             <span>
-              故障描述
+              ${escapeHtml(
+                t(
+                  "fields.description",
+                  "故障描述"
+                )
+              )}
             </span>
 
             <p>
-              ${escapeHtml(repair.description || "未填寫")}
+              ${escapeHtml(
+                repair.description ||
+                t(
+                  "common.notEntered",
+                  "未填寫"
+                )
+              )}
             </p>
 
           </div>
@@ -1887,9 +3126,18 @@ function renderEngineerRepairs(
         <button
           class="detail-button engineer-update-open-button"
           type="button"
-          data-record-id="${escapeHtml(repair.recordId)}"
+          data-record-id="${escapeHtml(
+            repair.recordId
+          )}"
         >
-          查看並更新維修進度
+
+          ${escapeHtml(
+            t(
+              "engineer.detail",
+              "查看並更新維修進度"
+            )
+          )}
+
         </button>
       `;
 
@@ -1938,7 +3186,9 @@ function openEngineerUpdate(
   if (!repair) {
 
     alert(
-      "找不到維修案件資料"
+      dt(
+        "engineerRecordNotFound"
+      )
     );
 
     return;
@@ -1946,7 +3196,9 @@ function openEngineerUpdate(
 
 
   engineerModalTitle.textContent =
-    `維修案件 #${repair.recordId}`;
+    `${dt(
+      "maintenanceTask"
+    )} #${repair.recordId}`;
 
 
   engineerRecordId.value =
@@ -1983,89 +3235,163 @@ function openEngineerUpdate(
     repair.maintenanceResult ||
     "";
 
-const photoHtml =
-  (
-    repair.photos || []
-  )
-    .map(
-      (photo, index) => {
 
-        const photoUrl =
-          "/api/engineer-repairs/photo" +
-          "?fileKey=" +
-          encodeURIComponent(
-            photo.fileKey
-          );
-
-
-        return `
-          <button
-            class="repair-photo-button"
-            type="button"
-            onclick="window.open('${photoUrl}', '_blank')"
-          >
-            <img
-              class="repair-photo"
-              src="${photoUrl}"
-              alt="故障照片 ${index + 1}"
-              loading="lazy"
-            >
-          </button>
-        `;
-      }
+  const photoHtml =
+    (
+      repair.photos ||
+      []
     )
-    .join("");
-  
+      .map(
+        (
+          photo,
+          index
+        ) => {
+
+          const photoUrl =
+            "/api/engineer-repairs/photo" +
+            "?fileKey=" +
+            encodeURIComponent(
+              photo.fileKey
+            );
+
+
+          return `
+            <button
+              class="repair-photo-button"
+              type="button"
+              data-photo-url="${escapeHtml(
+                photoUrl
+              )}"
+            >
+
+              <img
+                class="repair-photo"
+                src="${escapeHtml(
+                  photoUrl
+                )}"
+                alt="${escapeHtml(
+                  dt(
+                    "photoAlt"
+                  )
+                )} ${index + 1}"
+                loading="lazy"
+              >
+
+            </button>
+          `;
+        }
+      )
+      .join("");
+
+
   engineerCaseSummary.innerHTML = `
 
     <div class="engineer-case-summary">
 
       ${detailRow(
-        "設備名稱",
+        t(
+          "fields.equipmentName",
+          "設備名稱"
+        ),
         repair.equipmentName
       )}
 
       ${detailRow(
-        "設備編號",
+        t(
+          "fields.equipmentNumber",
+          "設備編號"
+        ),
         repair.equipmentNumber
       )}
 
       ${detailRow(
-        "所在位置",
-        repair.location
+        t(
+          "fields.location",
+          "所在位置"
+        ),
+        translateStoredValue(
+          "locations",
+          repair.location
+        )
       )}
 
       ${detailRow(
-        "報修人",
+        dt(
+          "applicant"
+        ),
         repair.applicant
       )}
 
       <div class="detail-label">
-        故障描述
+        ${escapeHtml(
+          t(
+            "fields.description",
+            "故障描述"
+          )
+        )}
       </div>
 
       <div class="detail-text">
-        ${escapeHtml(repair.description || "未填寫")}
+        ${escapeHtml(
+          repair.description ||
+          t(
+            "common.notEntered",
+            "未填寫"
+          )
+        )}
       </div>
 
-<div class="detail-label">
-  故障照片
-</div>
+      <div class="detail-label">
+        ${escapeHtml(
+          t(
+            "common.repairPhotos",
+            "故障照片"
+          )
+        )}
+      </div>
 
-${
-  photoHtml
-    ? `
-      <div class="repair-photo-grid">
-        ${photoHtml}
-      </div>
-    `
-    : `
-      <div class="no-photo">
-        本案件沒有故障照片
-      </div>
-    `
-}
+      ${
+        photoHtml
+          ? `
+            <div class="repair-photo-grid">
+              ${photoHtml}
+            </div>
+          `
+          : `
+            <div class="no-photo">
+              ${escapeHtml(
+                t(
+                  "common.noPhoto",
+                  "本案件沒有故障照片"
+                )
+              )}
+            </div>
+          `
+      }
+
+    </div>
   `;
+
+
+  engineerCaseSummary
+    .querySelectorAll(
+      ".repair-photo-button"
+    )
+    .forEach(
+      (button) => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            window.open(
+              button.dataset.photoUrl,
+              "_blank"
+            );
+          }
+        );
+      }
+    );
 
 
   engineerUpdateModal.style.display =
@@ -2127,7 +3453,9 @@ engineerUpdateForm.addEventListener(
     if (!currentUser) {
 
       alert(
-        "無法確認 LINE WORKS 工程師身分"
+        dt(
+          "engineerIdentityUnavailable"
+        )
       );
 
       return;
@@ -2151,7 +3479,9 @@ engineerUpdateForm.addEventListener(
     if (!recordId) {
 
       alert(
-        "找不到案件編號"
+        dt(
+          "recordIdNotFound"
+        )
       );
 
       return;
@@ -2161,7 +3491,9 @@ engineerUpdateForm.addEventListener(
     if (!status) {
 
       alert(
-        "請選擇處理狀態"
+        dt(
+          "selectStatus"
+        )
       );
 
       return;
@@ -2174,7 +3506,9 @@ engineerUpdateForm.addEventListener(
     ) {
 
       alert(
-        "案件設為已完成時，請填寫維修結果"
+        dt(
+          "completedResultRequired"
+        )
       );
 
       return;
@@ -2185,36 +3519,46 @@ engineerUpdateForm.addEventListener(
       true;
 
     engineerUpdateButton.textContent =
-      "更新中...";
+      t(
+        "engineer.updating",
+        "更新中..."
+      );
 
 
     try {
 
       const response =
         await fetch(
-          `/api/engineer-repairs/${encodeURIComponent(recordId)}`,
+          `/api/engineer-repairs/${encodeURIComponent(
+            recordId
+          )}`,
           {
-            method: "PUT",
+            method:
+              "PUT",
 
             headers: {
               "Content-Type":
                 "application/json"
             },
 
-            body: JSON.stringify({
-              userId:
-                currentUser.userId,
+            body:
+              JSON.stringify({
+                userId:
+                  currentUser.userId,
 
-              status,
+                language:
+                  currentLanguage(),
 
-              expectedCompletionDate:
-                engineerExpectedDate.value,
+                status,
 
-              actualCompletionDate:
-                engineerActualDate.value,
+                expectedCompletionDate:
+                  engineerExpectedDate.value,
 
-              maintenanceResult
-            })
+                actualCompletionDate:
+                  engineerActualDate.value,
+
+                maintenanceResult
+              })
           }
         );
 
@@ -2229,13 +3573,21 @@ engineerUpdateForm.addEventListener(
 
         throw new Error(
           result.message ||
-          "維修進度更新失敗"
+          dt(
+            "progressUpdateFailed"
+          )
         );
       }
 
 
       alert(
-        `案件 #${recordId}\n維修進度已更新`
+        `${t(
+          "fields.caseNumber",
+          "案件編號"
+        )} #${recordId}\n` +
+        dt(
+          "updateSuccess"
+        )
       );
 
 
@@ -2261,7 +3613,9 @@ engineerUpdateForm.addEventListener(
 
 
       alert(
-        `更新失敗：${error.message}`
+        `${dt(
+          "updateFailed"
+        )}：${error.message}`
       );
 
 
@@ -2271,23 +3625,27 @@ engineerUpdateForm.addEventListener(
         false;
 
       engineerUpdateButton.textContent =
-        "更新維修進度";
+        t(
+          "engineer.update",
+          "更新維修進度"
+        );
     }
   }
 );
 
 
 // ========================================
-// 選擇已完成時，自動填完成日期
+// 已完成時自動填入日期
 // ========================================
 
 engineerStatus.addEventListener(
   "change",
+
   () => {
 
     if (
       engineerStatus.value ===
-      "已完成" &&
+        "已完成" &&
       !engineerActualDate.value
     ) {
 
@@ -2304,6 +3662,7 @@ engineerStatus.addEventListener(
 
 refreshEngineerButton.addEventListener(
   "click",
+
   () => {
 
     engineerRepairsLoaded =
