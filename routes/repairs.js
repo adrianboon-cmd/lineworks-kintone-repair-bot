@@ -76,8 +76,7 @@ function normalizeLanguage(
 
 
   const value =
-    exactLanguage
-      .toLowerCase();
+    exactLanguage.toLowerCase();
 
 
   if (
@@ -115,6 +114,229 @@ function normalizeLanguage(
 
 
   return "zh-TW";
+}
+
+
+// ========================================
+// 設備類別三語翻譯
+// ========================================
+
+const EQUIPMENT_CATEGORY_TRANSLATIONS = {
+
+  "zh-TW": {
+
+    "辦公設備":
+      "辦公設備",
+
+    "電腦及資訊設備":
+      "電腦及資訊設備",
+
+    "網路及通訊設備":
+      "網路及通訊設備",
+
+    "生產設備":
+      "生產設備",
+
+    "空調及機電設備":
+      "空調及機電設備",
+
+    "門禁及監控設備":
+      "門禁及監控設備",
+
+    "其他":
+      "其他"
+  },
+
+
+  "ja-JP": {
+
+    "辦公設備":
+      "オフィス機器",
+
+    "電腦及資訊設備":
+      "PC・情報機器",
+
+    "網路及通訊設備":
+      "ネットワーク・通信機器",
+
+    "生產設備":
+      "生産設備",
+
+    "空調及機電設備":
+      "空調・電気設備",
+
+    "門禁及監控設備":
+      "入退室・監視設備",
+
+    "其他":
+      "その他"
+  },
+
+
+  "en-US": {
+
+    "辦公設備":
+      "Office Equipment",
+
+    "電腦及資訊設備":
+      "Computers and IT Equipment",
+
+    "網路及通訊設備":
+      "Network and Communication Equipment",
+
+    "生產設備":
+      "Production Equipment",
+
+    "空調及機電設備":
+      "HVAC and Electrical Equipment",
+
+    "門禁及監控設備":
+      "Access Control and Surveillance",
+
+    "其他":
+      "Other"
+  }
+};
+
+
+// ========================================
+// 所在位置三語翻譯
+// ========================================
+
+const LOCATION_TRANSLATIONS = {
+
+  "zh-TW": {
+
+    "總公司 6F 辦公室":
+      "總公司 6F 辦公室",
+
+    "總公司 7F 辦公室":
+      "總公司 7F 辦公室",
+
+    "總公司 公共區域":
+      "總公司 公共區域",
+
+    "桃園廠 產線 A":
+      "桃園廠 產線 A",
+
+    "桃園廠 產線 B":
+      "桃園廠 產線 B",
+
+    "桃園廠 倉庫":
+      "桃園廠 倉庫",
+
+    "桃園廠 辦公室":
+      "桃園廠 辦公室",
+
+    "其他":
+      "其他位置"
+  },
+
+
+  "ja-JP": {
+
+    "總公司 6F 辦公室":
+      "本社 6F オフィス",
+
+    "總公司 7F 辦公室":
+      "本社 7F オフィス",
+
+    "總公司 公共區域":
+      "本社 共用エリア",
+
+    "桃園廠 產線 A":
+      "桃園工場 ラインA",
+
+    "桃園廠 產線 B":
+      "桃園工場 ラインB",
+
+    "桃園廠 倉庫":
+      "桃園工場 倉庫",
+
+    "桃園廠 辦公室":
+      "桃園工場 オフィス",
+
+    "其他":
+      "その他の場所"
+  },
+
+
+  "en-US": {
+
+    "總公司 6F 辦公室":
+      "Head Office 6F",
+
+    "總公司 7F 辦公室":
+      "Head Office 7F",
+
+    "總公司 公共區域":
+      "Head Office Common Area",
+
+    "桃園廠 產線 A":
+      "Taoyuan Factory Line A",
+
+    "桃園廠 產線 B":
+      "Taoyuan Factory Line B",
+
+    "桃園廠 倉庫":
+      "Taoyuan Factory Warehouse",
+
+    "桃園廠 辦公室":
+      "Taoyuan Factory Office",
+
+    "其他":
+      "Other Location"
+  }
+};
+
+
+// ========================================
+// 翻譯設備類別
+// ========================================
+
+function translateEquipmentCategory(
+  language,
+  value
+) {
+
+  const normalizedLanguage =
+    normalizeLanguage(
+      language
+    );
+
+
+  return (
+    EQUIPMENT_CATEGORY_TRANSLATIONS[
+      normalizedLanguage
+    ]?.[value] ||
+    value ||
+    ""
+  );
+}
+
+
+// ========================================
+// 翻譯所在位置
+// ========================================
+
+function translateLocation(
+  language,
+  value
+) {
+
+  const normalizedLanguage =
+    normalizeLanguage(
+      language
+    );
+
+
+  return (
+    LOCATION_TRANSLATIONS[
+      normalizedLanguage
+    ]?.[value] ||
+    value ||
+    ""
+  );
 }
 
 
@@ -242,10 +464,6 @@ function apiMessage(
 
 const BOT_MESSAGES = {
 
-  // ======================================
-  // 繁體中文
-  // ======================================
-
   "zh-TW": {
 
     title:
@@ -289,10 +507,6 @@ const BOT_MESSAGES = {
   },
 
 
-  // ======================================
-  // 日本語
-  // ======================================
-
   "ja-JP": {
 
     title:
@@ -335,10 +549,6 @@ const BOT_MESSAGES = {
       "「設備修理システム」から最新の対応状況を確認できます。"
   },
 
-
-  // ======================================
-  // English
-  // ======================================
 
   "en-US": {
 
@@ -385,7 +595,7 @@ const BOT_MESSAGES = {
 
 
 // ========================================
-// 取得 Bot 語系內容
+// 取得 Bot 語系
 // ========================================
 
 function getBotMessages(
@@ -485,6 +695,20 @@ function buildRepairCreatedMessage({
     );
 
 
+  const translatedEquipmentCategory =
+    translateEquipmentCategory(
+      language,
+      equipmentCategory
+    );
+
+
+  const translatedLocation =
+    translateLocation(
+      language,
+      location
+    );
+
+
   const messageLines = [
 
     messages.title,
@@ -499,7 +723,7 @@ function buildRepairCreatedMessage({
     }`,
 
     `${messages.equipmentCategory}：${
-      equipmentCategory ||
+      translatedEquipmentCategory ||
       messages.notSet
     }`,
 
@@ -514,7 +738,7 @@ function buildRepairCreatedMessage({
     }`,
 
     `${messages.location}：${
-      location ||
+      translatedLocation ||
       messages.notSet
     }`,
 
@@ -688,7 +912,7 @@ router.post(
 
 
       // ==================================
-      // 必填欄位檢查
+      // 必填欄位
       // ==================================
 
       if (
@@ -792,7 +1016,7 @@ router.post(
 
 
       // ==================================
-      // 整理輸入資料
+      // kintone 儲存仍維持原始中文 Value
       // ==================================
 
       const repairData = {
@@ -941,7 +1165,6 @@ router.post(
 
 // ========================================
 // GET /api/repairs/my
-// 查詢目前使用者建立的案件
 // ========================================
 
 router.get(
