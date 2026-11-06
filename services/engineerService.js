@@ -1,4 +1,5 @@
-const axios = require("axios");
+const axios =
+  require("axios");
 
 
 // ========================================
@@ -16,6 +17,88 @@ const KINTONE_API_TOKEN =
 
 
 // ========================================
+// 語系設定
+// ========================================
+
+const SUPPORTED_LANGUAGES = [
+  "zh-TW",
+  "ja-JP",
+  "en-US"
+];
+
+
+const DEFAULT_LANGUAGE =
+  process.env.APP_DEFAULT_LANGUAGE ||
+  "zh-TW";
+
+
+// ========================================
+// 通知語言正規化
+// ========================================
+
+function normalizeLanguage(
+  language
+) {
+
+  const exactLanguage =
+    String(
+      language || ""
+    );
+
+
+  if (
+    SUPPORTED_LANGUAGES.includes(
+      exactLanguage
+    )
+  ) {
+
+    return exactLanguage;
+  }
+
+
+  const value =
+    exactLanguage.toLowerCase();
+
+
+  if (
+    value.startsWith("ja")
+  ) {
+
+    return "ja-JP";
+  }
+
+
+  if (
+    value.startsWith("en")
+  ) {
+
+    return "en-US";
+  }
+
+
+  if (
+    value.startsWith("zh")
+  ) {
+
+    return "zh-TW";
+  }
+
+
+  if (
+    SUPPORTED_LANGUAGES.includes(
+      DEFAULT_LANGUAGE
+    )
+  ) {
+
+    return DEFAULT_LANGUAGE;
+  }
+
+
+  return "zh-TW";
+}
+
+
+// ========================================
 // 環境變數檢查
 // ========================================
 
@@ -25,6 +108,7 @@ function checkConfig() {
 
 
   if (!KINTONE_BASE_URL) {
+
     missing.push(
       "KINTONE_BASE_URL"
     );
@@ -32,6 +116,7 @@ function checkConfig() {
 
 
   if (!KINTONE_APP_ID) {
+
     missing.push(
       "KINTONE_APP_ID"
     );
@@ -39,13 +124,16 @@ function checkConfig() {
 
 
   if (!KINTONE_API_TOKEN) {
+
     missing.push(
       "KINTONE_API_TOKEN"
     );
   }
 
 
-  if (missing.length > 0) {
+  if (
+    missing.length > 0
+  ) {
 
     throw new Error(
       `缺少 kintone 環境變數：${missing.join(", ")}`
@@ -58,11 +146,21 @@ function checkConfig() {
 // Query 安全處理
 // ========================================
 
-function escapeQueryValue(value) {
+function escapeQueryValue(
+  value
+) {
 
-  return String(value)
-    .replace(/\\/g, "\\\\")
-    .replace(/"/g, '\\"');
+  return String(
+    value
+  )
+    .replace(
+      /\\/g,
+      "\\\\"
+    )
+    .replace(
+      /"/g,
+      '\\"'
+    );
 }
 
 
@@ -97,11 +195,15 @@ function getTaipeiDate() {
 // 整理 kintone 案件資料
 // ========================================
 
-function formatRepair(record) {
+function formatRepair(
+  record
+) {
 
   const photos =
     (
-      record.fault_photo?.value ||
+      record
+        .fault_photo
+        ?.value ||
       []
     ).map(
       (file) => ({
@@ -124,48 +226,85 @@ function formatRepair(record) {
   return {
 
     recordId:
-      record.$id?.value || "",
+      record.$id?.value ||
+      "",
+
 
     revision:
-      record.$revision?.value || "",
+      record.$revision?.value ||
+      "",
+
+
+    notificationLanguage:
+      normalizeLanguage(
+        record
+          .notification_language
+          ?.value
+      ),
+
 
     applicant:
-      record["申請人"]?.value || "",
+      record["申請人"]?.value ||
+      "",
+
 
     reporterLineworksUserId:
-      record.lineworks_user_id?.value ||
+      record
+        .lineworks_user_id
+        ?.value ||
       "",
+
 
     applicationDate:
-      record.application_date?.value ||
+      record
+        .application_date
+        ?.value ||
       "",
+
 
     equipmentCategory:
-      record.equipment_category?.value ||
+      record
+        .equipment_category
+        ?.value ||
       "",
+
 
     equipmentNumber:
-      record.equipment_number?.value ||
+      record
+        .equipment_number
+        ?.value ||
       "",
+
 
     equipmentName:
-      record.equipment_name?.value ||
+      record
+        .equipment_name
+        ?.value ||
       "",
+
 
     location:
-      record.location?.value || "",
+      record.location?.value ||
+      "",
+
 
     description:
-      record.fault_description?.value ||
+      record
+        .fault_description
+        ?.value ||
       "",
+
 
     status:
       record["處理狀態"]?.value ||
       "",
 
+
     maintenanceStaff:
       (
-        record.maintenance_staff?.value ||
+        record
+          .maintenance_staff
+          ?.value ||
         []
       ).map(
         (user) => ({
@@ -178,27 +317,37 @@ function formatRepair(record) {
         })
       ),
 
+
     maintenanceLineworksUserId:
       record
         .maintenance_lineworks_user_id
-        ?.value || "",
+        ?.value ||
+      "",
+
 
     expectedCompletionDate:
       record
         .expected_completion_date
-        ?.value || "",
+        ?.value ||
+      "",
+
 
     actualCompletionDate:
       record
         .actual_completion_date
-        ?.value || "",
+        ?.value ||
+      "",
+
 
     maintenanceResult:
       record
         .maintenance_result
-        ?.value || "",
+        ?.value ||
+      "",
+
 
     photos,
+
 
     photoCount:
       photos.length
@@ -251,7 +400,9 @@ async function getAssignedRepairs(
         params: {
 
           app:
-            Number(KINTONE_APP_ID),
+            Number(
+              KINTONE_APP_ID
+            ),
 
           query,
 
@@ -262,6 +413,7 @@ async function getAssignedRepairs(
 
             "申請人",
             "lineworks_user_id",
+            "notification_language",
 
             "application_date",
 
@@ -332,10 +484,14 @@ async function getRepairById(
         params: {
 
           app:
-            Number(KINTONE_APP_ID),
+            Number(
+              KINTONE_APP_ID
+            ),
 
           id:
-            Number(recordId)
+            Number(
+              recordId
+            )
         }
       }
     );
@@ -354,6 +510,7 @@ async function getRepairById(
 async function updateRepairProgress({
   recordId,
   lineworksUserId,
+  language,
   status,
   expectedCompletionDate,
   actualCompletionDate,
@@ -382,8 +539,11 @@ async function updateRepairProgress({
   const allowedStatuses = [
 
     "已指派工程師",
+
     "維修中",
+
     "無法維修",
+
     "已完成"
   ];
 
@@ -435,11 +595,31 @@ async function updateRepairProgress({
 
 
   // ======================================
+  // 案件通知語言
+  //
+  // 以 kintone 案件語言為優先。
+  // 舊案件沒有語言時才使用 WOFF 語言。
+  // ======================================
+
+  const storedLanguage =
+    existingRepair
+      .notificationLanguage;
+
+
+  const notificationLanguage =
+    normalizeLanguage(
+      storedLanguage ||
+      language
+    );
+
+
+  // ======================================
   // 完成日期
   // ======================================
 
   let finalActualCompletionDate =
-    actualCompletionDate || "";
+    actualCompletionDate ||
+    "";
 
 
   if (
@@ -463,17 +643,26 @@ async function updateRepairProgress({
         status
     },
 
+
+    notification_language: {
+      value:
+        notificationLanguage
+    },
+
+
     expected_completion_date: {
       value:
         expectedCompletionDate ||
         null
     },
 
+
     actual_completion_date: {
       value:
         finalActualCompletionDate ||
         null
     },
+
 
     maintenance_result: {
       value:
@@ -490,10 +679,14 @@ async function updateRepairProgress({
 
       {
         app:
-          Number(KINTONE_APP_ID),
+          Number(
+            KINTONE_APP_ID
+          ),
 
         id:
-          Number(recordId),
+          Number(
+            recordId
+          ),
 
         record
       },
@@ -512,66 +705,109 @@ async function updateRepairProgress({
 
 
   // ======================================
-  // 回傳通知需要的完整資料
+  // 通知用工程師名稱
   // ======================================
 
   const engineerNames =
     (
-      existingRepair.maintenanceStaff ||
+      existingRepair
+        .maintenanceStaff ||
       []
     )
       .map(
-        (user) => user.name
+        (user) =>
+          user.name
       )
-      .filter(Boolean)
+      .filter(
+        Boolean
+      )
       .join("、");
 
+
+  // ======================================
+  // 回傳通知需要的完整資料
+  // ======================================
 
   return {
 
     recordId:
-      String(recordId),
+      String(
+        recordId
+      ),
+
 
     revision:
-      updateResponse.data.revision,
+      updateResponse
+        .data
+        .revision,
+
+
+    notificationLanguage,
+
 
     previousStatus:
       existingRepair.status,
 
+
     status,
+
 
     applicant:
       existingRepair.applicant,
+
 
     reporterLineworksUserId:
       existingRepair
         .reporterLineworksUserId,
 
+
     engineerLineworksUserId:
       lineworksUserId,
 
+
     engineerNames,
 
+
+    applicationDate:
+      existingRepair
+        .applicationDate,
+
+
     equipmentCategory:
-      existingRepair.equipmentCategory,
+      existingRepair
+        .equipmentCategory,
+
 
     equipmentNumber:
-      existingRepair.equipmentNumber,
+      existingRepair
+        .equipmentNumber,
+
 
     equipmentName:
-      existingRepair.equipmentName,
+      existingRepair
+        .equipmentName,
+
 
     location:
       existingRepair.location,
 
+
+    description:
+      existingRepair.description,
+
+
     expectedCompletionDate:
-      expectedCompletionDate || "",
+      expectedCompletionDate ||
+      "",
+
 
     actualCompletionDate:
       finalActualCompletionDate,
 
+
     maintenanceResult:
-      maintenanceResult || ""
+      maintenanceResult ||
+      ""
   };
 }
 
