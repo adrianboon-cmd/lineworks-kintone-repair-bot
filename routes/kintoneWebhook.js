@@ -1,4 +1,5 @@
-const express = require("express");
+const express =
+  require("express");
 
 const {
   sendTextMessage
@@ -12,7 +13,85 @@ const router =
 
 
 // ========================================
-// 共用：取得欄位值
+// 語系設定
+// ========================================
+
+const SUPPORTED_LANGUAGES = [
+  "zh-TW",
+  "ja-JP",
+  "en-US"
+];
+
+
+const DEFAULT_LANGUAGE =
+  process.env.APP_DEFAULT_LANGUAGE ||
+  "zh-TW";
+
+
+function normalizeLanguage(
+  language
+) {
+
+  const exactLanguage =
+    String(
+      language || ""
+    );
+
+
+  if (
+    SUPPORTED_LANGUAGES.includes(
+      exactLanguage
+    )
+  ) {
+
+    return exactLanguage;
+  }
+
+
+  const value =
+    exactLanguage.toLowerCase();
+
+
+  if (
+    value.startsWith("ja")
+  ) {
+
+    return "ja-JP";
+  }
+
+
+  if (
+    value.startsWith("en")
+  ) {
+
+    return "en-US";
+  }
+
+
+  if (
+    value.startsWith("zh")
+  ) {
+
+    return "zh-TW";
+  }
+
+
+  if (
+    SUPPORTED_LANGUAGES.includes(
+      DEFAULT_LANGUAGE
+    )
+  ) {
+
+    return DEFAULT_LANGUAGE;
+  }
+
+
+  return "zh-TW";
+}
+
+
+// ========================================
+// 取得 kintone 欄位值
 // ========================================
 
 function getFieldValue(
@@ -29,14 +108,39 @@ function getFieldValue(
 
 
 // ========================================
-// 共用：日期格式
+// 日期格式
 // ========================================
 
-function formatDate(value) {
+function formatDate(
+  value,
+  language
+) {
 
   if (!value) {
 
-    return "未設定";
+    const emptyDateText = {
+
+      "zh-TW":
+        "未設定",
+
+      "ja-JP":
+        "未設定",
+
+      "en-US":
+        "Not set"
+    };
+
+
+    return (
+      emptyDateText[
+        normalizeLanguage(
+          language
+        )
+      ] ||
+      emptyDateText[
+        "zh-TW"
+      ]
+    );
   }
 
 
@@ -61,115 +165,827 @@ function formatDate(value) {
 
 
 // ========================================
-// 指派工程師通知：給工程師
+// 設備類別翻譯
+// ========================================
+
+const EQUIPMENT_CATEGORY_TRANSLATIONS = {
+
+  "zh-TW": {
+
+    "辦公設備":
+      "辦公設備",
+
+    "電腦及資訊設備":
+      "電腦及資訊設備",
+
+    "網路及通訊設備":
+      "網路及通訊設備",
+
+    "生產設備":
+      "生產設備",
+
+    "空調及機電設備":
+      "空調及機電設備",
+
+    "門禁及監控設備":
+      "門禁及監控設備",
+
+    "其他":
+      "其他"
+  },
+
+
+  "ja-JP": {
+
+    "辦公設備":
+      "オフィス機器",
+
+    "電腦及資訊設備":
+      "PC・情報機器",
+
+    "網路及通訊設備":
+      "ネットワーク・通信機器",
+
+    "生產設備":
+      "生産設備",
+
+    "空調及機電設備":
+      "空調・電気設備",
+
+    "門禁及監控設備":
+      "入退室・監視設備",
+
+    "其他":
+      "その他"
+  },
+
+
+  "en-US": {
+
+    "辦公設備":
+      "Office Equipment",
+
+    "電腦及資訊設備":
+      "Computers and IT Equipment",
+
+    "網路及通訊設備":
+      "Network and Communication Equipment",
+
+    "生產設備":
+      "Production Equipment",
+
+    "空調及機電設備":
+      "HVAC and Electrical Equipment",
+
+    "門禁及監控設備":
+      "Access Control and Surveillance",
+
+    "其他":
+      "Other"
+  }
+};
+
+
+// ========================================
+// 所在位置翻譯
+// ========================================
+
+const LOCATION_TRANSLATIONS = {
+
+  "zh-TW": {
+
+    "總公司 6F 辦公室":
+      "總公司 6F 辦公室",
+
+    "總公司 7F 辦公室":
+      "總公司 7F 辦公室",
+
+    "總公司 公共區域":
+      "總公司 公共區域",
+
+    "桃園廠 產線 A":
+      "桃園廠 產線 A",
+
+    "桃園廠 產線 B":
+      "桃園廠 產線 B",
+
+    "桃園廠 倉庫":
+      "桃園廠 倉庫",
+
+    "桃園廠 辦公室":
+      "桃園廠 辦公室",
+
+    "其他":
+      "其他位置"
+  },
+
+
+  "ja-JP": {
+
+    "總公司 6F 辦公室":
+      "本社 6F オフィス",
+
+    "總公司 7F 辦公室":
+      "本社 7F オフィス",
+
+    "總公司 公共區域":
+      "本社 共用エリア",
+
+    "桃園廠 產線 A":
+      "桃園工場 ラインA",
+
+    "桃園廠 產線 B":
+      "桃園工場 ラインB",
+
+    "桃園廠 倉庫":
+      "桃園工場 倉庫",
+
+    "桃園廠 辦公室":
+      "桃園工場 オフィス",
+
+    "其他":
+      "その他の場所"
+  },
+
+
+  "en-US": {
+
+    "總公司 6F 辦公室":
+      "Head Office 6F",
+
+    "總公司 7F 辦公室":
+      "Head Office 7F",
+
+    "總公司 公共區域":
+      "Head Office Common Area",
+
+    "桃園廠 產線 A":
+      "Taoyuan Factory Line A",
+
+    "桃園廠 產線 B":
+      "Taoyuan Factory Line B",
+
+    "桃園廠 倉庫":
+      "Taoyuan Factory Warehouse",
+
+    "桃園廠 辦公室":
+      "Taoyuan Factory Office",
+
+    "其他":
+      "Other Location"
+  }
+};
+
+
+// ========================================
+// 狀態翻譯
+// ========================================
+
+const STATUS_TRANSLATIONS = {
+
+  "zh-TW": {
+
+    "待分派工程師處理":
+      "待分派工程師處理",
+
+    "已指派工程師":
+      "已指派工程師",
+
+    "維修中":
+      "維修中",
+
+    "無法維修":
+      "無法維修",
+
+    "已完成":
+      "已完成"
+  },
+
+
+  "ja-JP": {
+
+    "待分派工程師處理":
+      "担当者割当待ち",
+
+    "已指派工程師":
+      "担当者割当済み",
+
+    "維修中":
+      "対応中",
+
+    "無法維修":
+      "修理不可",
+
+    "已完成":
+      "対応完了"
+  },
+
+
+  "en-US": {
+
+    "待分派工程師處理":
+      "Waiting for Engineer Assignment",
+
+    "已指派工程師":
+      "Engineer Assigned",
+
+    "維修中":
+      "In Progress",
+
+    "無法維修":
+      "Unable to Repair",
+
+    "已完成":
+      "Completed"
+  }
+};
+
+
+// ========================================
+// 翻譯儲存值
+// ========================================
+
+function translateStoredValue(
+  translations,
+  language,
+  value
+) {
+
+  const normalizedLanguage =
+    normalizeLanguage(
+      language
+    );
+
+
+  return (
+    translations[
+      normalizedLanguage
+    ]?.[value] ||
+    value ||
+    ""
+  );
+}
+
+
+function translateEquipmentCategory(
+  language,
+  value
+) {
+
+  return translateStoredValue(
+    EQUIPMENT_CATEGORY_TRANSLATIONS,
+    language,
+    value
+  );
+}
+
+
+function translateLocation(
+  language,
+  value
+) {
+
+  return translateStoredValue(
+    LOCATION_TRANSLATIONS,
+    language,
+    value
+  );
+}
+
+
+function translateStatus(
+  language,
+  value
+) {
+
+  return translateStoredValue(
+    STATUS_TRANSLATIONS,
+    language,
+    value
+  );
+}
+
+
+// ========================================
+// Bot 訊息字典
+// ========================================
+
+const MESSAGES = {
+
+  // ======================================
+  // 繁體中文
+  // ======================================
+
+  "zh-TW": {
+
+    notSet:
+      "未設定",
+
+    notEntered:
+      "未填寫",
+
+    assigned:
+      "已指派",
+
+    caseNumber:
+      "案件編號",
+
+    equipmentCategory:
+      "設備類別",
+
+    equipmentName:
+      "設備名稱",
+
+    equipmentNumber:
+      "設備編號",
+
+    location:
+      "所在位置",
+
+    applicant:
+      "報修人",
+
+    applicationDate:
+      "申請日期",
+
+    status:
+      "目前狀態",
+
+    maintenanceStaff:
+      "維修人員",
+
+    expectedCompletionDate:
+      "預計完成日期",
+
+    actualCompletionDate:
+      "實際完成日期",
+
+    faultDescription:
+      "故障描述",
+
+    maintenanceProgress:
+      "維修進度",
+
+    maintenanceExplanation:
+      "處理說明",
+
+    maintenanceResult:
+      "維修結果",
+
+    engineerAssignmentTitle:
+      "🔧 新維修任務",
+
+    reporterAssignmentTitle:
+      "👨‍🔧 維修工程師已指派",
+
+    inProgressTitle:
+      "🧰 報修案件進度更新",
+
+    unableTitle:
+      "⚠️ 報修案件狀態更新",
+
+    completedTitle:
+      "✅ 報修案件已完成",
+
+    engineerAssignmentFooter:
+      "請進入「設備報修系統 → 維修任務」查看並處理案件。",
+
+    reporterAssignmentFooter:
+      "您可以進入「設備報修系統 → 案件查詢」查看最新進度。",
+
+    inProgressFooter:
+      "您可以進入「設備報修系統 → 案件查詢」查看最新進度。",
+
+    unableFooter:
+      "請進入「設備報修系統 → 案件查詢」查看案件詳情。",
+
+    completedFooter:
+      "您可以進入「設備報修系統 → 案件查詢」查看完整紀錄。"
+  },
+
+
+  // ======================================
+  // 日本語
+  // ======================================
+
+  "ja-JP": {
+
+    notSet:
+      "未設定",
+
+    notEntered:
+      "未入力",
+
+    assigned:
+      "割当済み",
+
+    caseNumber:
+      "案件番号",
+
+    equipmentCategory:
+      "設備カテゴリー",
+
+    equipmentName:
+      "設備名",
+
+    equipmentNumber:
+      "設備番号",
+
+    location:
+      "設置場所",
+
+    applicant:
+      "申請者",
+
+    applicationDate:
+      "申請日",
+
+    status:
+      "現在のステータス",
+
+    maintenanceStaff:
+      "修理担当者",
+
+    expectedCompletionDate:
+      "完了予定日",
+
+    actualCompletionDate:
+      "完了日",
+
+    faultDescription:
+      "故障内容",
+
+    maintenanceProgress:
+      "対応状況",
+
+    maintenanceExplanation:
+      "対応内容",
+
+    maintenanceResult:
+      "対応結果",
+
+    engineerAssignmentTitle:
+      "🔧 新しい修理タスク",
+
+    reporterAssignmentTitle:
+      "👨‍🔧 修理担当者が割り当てられました",
+
+    inProgressTitle:
+      "🧰 修理案件の進捗更新",
+
+    unableTitle:
+      "⚠️ 修理案件のステータス更新",
+
+    completedTitle:
+      "✅ 修理案件が完了しました",
+
+    engineerAssignmentFooter:
+      "「設備修理システム → 修理タスク」から案件を確認し、対応してください。",
+
+    reporterAssignmentFooter:
+      "「設備修理システム → 案件照会」から最新の進捗を確認できます。",
+
+    inProgressFooter:
+      "「設備修理システム → 案件照会」から最新の進捗を確認できます。",
+
+    unableFooter:
+      "「設備修理システム → 案件照会」から案件詳細を確認してください。",
+
+    completedFooter:
+      "「設備修理システム → 案件照会」から対応履歴を確認できます。"
+  },
+
+
+  // ======================================
+  // English
+  // ======================================
+
+  "en-US": {
+
+    notSet:
+      "Not set",
+
+    notEntered:
+      "Not entered",
+
+    assigned:
+      "Assigned",
+
+    caseNumber:
+      "Case Number",
+
+    equipmentCategory:
+      "Equipment Category",
+
+    equipmentName:
+      "Equipment Name",
+
+    equipmentNumber:
+      "Equipment Number",
+
+    location:
+      "Location",
+
+    applicant:
+      "Applicant",
+
+    applicationDate:
+      "Request Date",
+
+    status:
+      "Status",
+
+    maintenanceStaff:
+      "Maintenance Engineer",
+
+    expectedCompletionDate:
+      "Expected Completion Date",
+
+    actualCompletionDate:
+      "Actual Completion Date",
+
+    faultDescription:
+      "Fault Description",
+
+    maintenanceProgress:
+      "Repair Progress",
+
+    maintenanceExplanation:
+      "Service Note",
+
+    maintenanceResult:
+      "Maintenance Result",
+
+    engineerAssignmentTitle:
+      "🔧 New Repair Task",
+
+    reporterAssignmentTitle:
+      "👨‍🔧 Maintenance Engineer Assigned",
+
+    inProgressTitle:
+      "🧰 Repair Case Progress Updated",
+
+    unableTitle:
+      "⚠️ Repair Case Status Updated",
+
+    completedTitle:
+      "✅ Repair Case Completed",
+
+    engineerAssignmentFooter:
+      "Open “Equipment Repair System → Repair Tasks” to view and process the case.",
+
+    reporterAssignmentFooter:
+      "Open “Equipment Repair System → My Cases” to view the latest progress.",
+
+    inProgressFooter:
+      "Open “Equipment Repair System → My Cases” to view the latest progress.",
+
+    unableFooter:
+      "Open “Equipment Repair System → My Cases” to view the case details.",
+
+    completedFooter:
+      "Open “Equipment Repair System → My Cases” to view the complete service history."
+  }
+};
+
+
+// ========================================
+// 取得語系訊息
+// ========================================
+
+function getMessages(
+  language
+) {
+
+  const normalizedLanguage =
+    normalizeLanguage(
+      language
+    );
+
+
+  return (
+    MESSAGES[
+      normalizedLanguage
+    ] ||
+    MESSAGES[
+      "zh-TW"
+    ]
+  );
+}
+
+
+// ========================================
+// 工程師指派通知：工程師
 // ========================================
 
 function buildEngineerAssignmentMessage(
   repair
 ) {
 
+  const language =
+    repair.notificationLanguage;
+
+  const messages =
+    getMessages(
+      language
+    );
+
+
   const lines = [
 
-    "🔧 新維修任務",
+    messages.engineerAssignmentTitle,
 
     "",
 
-    `案件編號：#${repair.recordId}`,
+    `${messages.caseNumber}：#${repair.recordId}`,
 
-    `設備類別：${repair.equipmentCategory || "未設定"}`,
+    `${messages.equipmentCategory}：${
+      translateEquipmentCategory(
+        language,
+        repair.equipmentCategory
+      ) ||
+      messages.notSet
+    }`,
 
-    `設備名稱：${repair.equipmentName || "未設定"}`,
+    `${messages.equipmentName}：${
+      repair.equipmentName ||
+      messages.notSet
+    }`,
 
-    `設備編號：${repair.equipmentNumber || "未填寫"}`,
+    `${messages.equipmentNumber}：${
+      repair.equipmentNumber ||
+      messages.notEntered
+    }`,
 
-    `所在位置：${repair.location || "未設定"}`,
+    `${messages.location}：${
+      translateLocation(
+        language,
+        repair.location
+      ) ||
+      messages.notSet
+    }`,
 
-    `報修人：${repair.applicant || "未設定"}`,
+    `${messages.applicant}：${
+      repair.applicant ||
+      messages.notSet
+    }`,
 
-    `申請日期：${formatDate(
-      repair.applicationDate
-    )}`,
+    `${messages.applicationDate}：${
+      formatDate(
+        repair.applicationDate,
+        language
+      )
+    }`,
 
-    `目前狀態：${repair.status || "已指派工程師"}`,
+    `${messages.status}：${
+      translateStatus(
+        language,
+        repair.status ||
+        "已指派工程師"
+      )
+    }`,
 
     "",
 
-    "故障描述：",
+    `${messages.faultDescription}：`,
 
     repair.description ||
-      "未填寫",
+      messages.notEntered,
 
     "",
 
-    "請進入「設備報修系統 → 維修任務」查看並處理案件。"
+    messages.engineerAssignmentFooter
   ];
 
 
-  return lines.join("\n");
+  return lines.join(
+    "\n"
+  );
 }
 
 
 // ========================================
-// 指派工程師通知：給報修人
+// 工程師指派通知：報修人
 // ========================================
 
 function buildReporterAssignmentMessage(
   repair
 ) {
 
+  const language =
+    repair.notificationLanguage;
+
+  const messages =
+    getMessages(
+      language
+    );
+
+
   const lines = [
 
-    "👨‍🔧 維修工程師已指派",
+    messages.reporterAssignmentTitle,
 
     "",
 
-    `案件編號：#${repair.recordId}`,
+    `${messages.caseNumber}：#${repair.recordId}`,
 
-    `設備名稱：${repair.equipmentName || "未設定"}`,
+    `${messages.equipmentName}：${
+      repair.equipmentName ||
+      messages.notSet
+    }`,
 
-    `設備編號：${repair.equipmentNumber || "未填寫"}`,
+    `${messages.equipmentNumber}：${
+      repair.equipmentNumber ||
+      messages.notEntered
+    }`,
 
-    `所在位置：${repair.location || "未設定"}`,
+    `${messages.location}：${
+      translateLocation(
+        language,
+        repair.location
+      ) ||
+      messages.notSet
+    }`,
 
-    `維修人員：${repair.engineerNames || "已指派"}`,
+    `${messages.maintenanceStaff}：${
+      repair.engineerNames ||
+      messages.assigned
+    }`,
 
-    `目前狀態：${repair.status || "已指派工程師"}`,
+    `${messages.status}：${
+      translateStatus(
+        language,
+        repair.status ||
+        "已指派工程師"
+      )
+    }`,
 
     "",
 
-    "您可以進入「設備報修系統 → 案件查詢」查看最新進度。"
+    messages.reporterAssignmentFooter
   ];
 
 
-  return lines.join("\n");
+  return lines.join(
+    "\n"
+  );
 }
 
 
 // ========================================
-// 維修中通知：給報修人
+// 維修中通知
 // ========================================
 
 function buildInProgressMessage(
   repair
 ) {
 
+  const language =
+    repair.notificationLanguage;
+
+  const messages =
+    getMessages(
+      language
+    );
+
+
   const lines = [
 
-    "🧰 報修案件進度更新",
+    messages.inProgressTitle,
 
     "",
 
-    `案件編號：#${repair.recordId}`,
+    `${messages.caseNumber}：#${repair.recordId}`,
 
-    `設備名稱：${repair.equipmentName || "未設定"}`,
+    `${messages.equipmentName}：${
+      repair.equipmentName ||
+      messages.notSet
+    }`,
 
-    `設備編號：${repair.equipmentNumber || "未填寫"}`,
+    `${messages.equipmentNumber}：${
+      repair.equipmentNumber ||
+      messages.notEntered
+    }`,
 
-    `所在位置：${repair.location || "未設定"}`,
+    `${messages.location}：${
+      translateLocation(
+        language,
+        repair.location
+      ) ||
+      messages.notSet
+    }`,
 
-    `維修人員：${repair.engineerNames || "未設定"}`,
+    `${messages.maintenanceStaff}：${
+      repair.engineerNames ||
+      messages.notSet
+    }`,
 
-    `目前狀態：維修中`
+    `${messages.status}：${
+      translateStatus(
+        language,
+        "維修中"
+      )
+    }`
   ];
 
 
@@ -179,9 +995,12 @@ function buildInProgressMessage(
 
     lines.push(
 
-      `預計完成日期：${formatDate(
-        repair.expectedCompletionDate
-      )}`
+      `${messages.expectedCompletionDate}：${
+        formatDate(
+          repair.expectedCompletionDate,
+          language
+        )
+      }`
     );
   }
 
@@ -194,7 +1013,7 @@ function buildInProgressMessage(
 
       "",
 
-      "維修進度：",
+      `${messages.maintenanceProgress}：`,
 
       repair.maintenanceResult
     );
@@ -205,39 +1024,70 @@ function buildInProgressMessage(
 
     "",
 
-    "您可以進入「設備報修系統 → 案件查詢」查看最新進度。"
+    messages.inProgressFooter
   );
 
 
-  return lines.join("\n");
+  return lines.join(
+    "\n"
+  );
 }
 
 
 // ========================================
-// 無法維修通知：給報修人
+// 無法維修通知
 // ========================================
 
 function buildUnableToRepairMessage(
   repair
 ) {
 
+  const language =
+    repair.notificationLanguage;
+
+  const messages =
+    getMessages(
+      language
+    );
+
+
   const lines = [
 
-    "⚠️ 報修案件狀態更新",
+    messages.unableTitle,
 
     "",
 
-    `案件編號：#${repair.recordId}`,
+    `${messages.caseNumber}：#${repair.recordId}`,
 
-    `設備名稱：${repair.equipmentName || "未設定"}`,
+    `${messages.equipmentName}：${
+      repair.equipmentName ||
+      messages.notSet
+    }`,
 
-    `設備編號：${repair.equipmentNumber || "未填寫"}`,
+    `${messages.equipmentNumber}：${
+      repair.equipmentNumber ||
+      messages.notEntered
+    }`,
 
-    `所在位置：${repair.location || "未設定"}`,
+    `${messages.location}：${
+      translateLocation(
+        language,
+        repair.location
+      ) ||
+      messages.notSet
+    }`,
 
-    `維修人員：${repair.engineerNames || "未設定"}`,
+    `${messages.maintenanceStaff}：${
+      repair.engineerNames ||
+      messages.notSet
+    }`,
 
-    "目前狀態：無法維修"
+    `${messages.status}：${
+      translateStatus(
+        language,
+        "無法維修"
+      )
+    }`
   ];
 
 
@@ -249,7 +1099,7 @@ function buildUnableToRepairMessage(
 
       "",
 
-      "處理說明：",
+      `${messages.maintenanceExplanation}：`,
 
       repair.maintenanceResult
     );
@@ -260,39 +1110,70 @@ function buildUnableToRepairMessage(
 
     "",
 
-    "請進入「設備報修系統 → 案件查詢」查看案件詳情。"
+    messages.unableFooter
   );
 
 
-  return lines.join("\n");
+  return lines.join(
+    "\n"
+  );
 }
 
 
 // ========================================
-// 已完成通知：給報修人
+// 已完成通知
 // ========================================
 
 function buildCompletedMessage(
   repair
 ) {
 
+  const language =
+    repair.notificationLanguage;
+
+  const messages =
+    getMessages(
+      language
+    );
+
+
   const lines = [
 
-    "✅ 報修案件已完成",
+    messages.completedTitle,
 
     "",
 
-    `案件編號：#${repair.recordId}`,
+    `${messages.caseNumber}：#${repair.recordId}`,
 
-    `設備名稱：${repair.equipmentName || "未設定"}`,
+    `${messages.equipmentName}：${
+      repair.equipmentName ||
+      messages.notSet
+    }`,
 
-    `設備編號：${repair.equipmentNumber || "未填寫"}`,
+    `${messages.equipmentNumber}：${
+      repair.equipmentNumber ||
+      messages.notEntered
+    }`,
 
-    `所在位置：${repair.location || "未設定"}`,
+    `${messages.location}：${
+      translateLocation(
+        language,
+        repair.location
+      ) ||
+      messages.notSet
+    }`,
 
-    `維修人員：${repair.engineerNames || "未設定"}`,
+    `${messages.maintenanceStaff}：${
+      repair.engineerNames ||
+      messages.notSet
+    }`,
 
-    "處理狀態：已完成"
+    `${messages.status}：${
+      translateStatus(
+        language,
+        "已完成"
+      )
+    }`
   ];
 
 
@@ -302,33 +1183,12 @@ function buildCompletedMessage(
 
     lines.push(
 
-      `實際完成日期：${formatDate(
-        repair.actualCompletionDate
-      )}`
-    );
-  }
-
-
-  if (
-    repair.maintenanceResult
-  ) {
-
-    lines.push(
-
-      "",
-
-      "維修結果：",
-
-      repair.maintenanceResult
-    );
-
-  } else {
-
-    lines.push(
-
-      "",
-
-      "維修結果：未填寫"
+      `${messages.actualCompletionDate}：${
+        formatDate(
+          repair.actualCompletionDate,
+          language
+        )
+      }`
     );
   }
 
@@ -337,33 +1197,49 @@ function buildCompletedMessage(
 
     "",
 
-    "您可以進入「設備報修系統 → 案件查詢」查看完整紀錄。"
+    `${messages.maintenanceResult}：`,
+
+    repair.maintenanceResult ||
+      messages.notEntered,
+
+    "",
+
+    messages.completedFooter
   );
 
 
-  return lines.join("\n");
+  return lines.join(
+    "\n"
+  );
 }
 
 
 // ========================================
-// 通知 LINE WORKS 使用者
+// 發送 LINE WORKS 通知
 // ========================================
 
 async function sendNotification(
   userId,
   message,
   target,
-  recordId
+  recordId,
+  language
 ) {
 
   if (!userId) {
 
     return {
-      success: false,
-      skipped: true,
+
+      success:
+        false,
+
+      skipped:
+        true,
+
       target,
+
       reason:
-        "缺少 LINE WORKS User ID"
+        "Missing LINE WORKS User ID"
     };
   }
 
@@ -381,13 +1257,17 @@ async function sendNotification(
       {
         recordId,
         target,
-        userId
+        userId,
+        language
       }
     );
 
 
     return {
-      success: true,
+
+      success:
+        true,
+
       target
     };
 
@@ -400,6 +1280,7 @@ async function sendNotification(
         recordId,
         target,
         userId,
+        language,
         message:
           error.message
       }
@@ -407,12 +1288,48 @@ async function sendNotification(
 
 
     return {
-      success: false,
+
+      success:
+        false,
+
       target,
+
       error:
         error.message
     };
   }
+}
+
+
+// ========================================
+// 回傳通知處理結果
+// ========================================
+
+function sendWebhookResponse(
+  res,
+  repair,
+  message,
+  notifications
+) {
+
+  return res.json({
+
+    success:
+      true,
+
+    message,
+
+    recordId:
+      repair.recordId,
+
+    status:
+      repair.status,
+
+    language:
+      repair.notificationLanguage,
+
+    notifications
+  });
 }
 
 
@@ -433,10 +1350,6 @@ router.post(
     res
   ) => {
 
-    // ====================================
-    // 驗證 Webhook Secret
-    // ====================================
-
     const expectedSecret =
       process.env
         .KINTONE_WEBHOOK_SECRET;
@@ -451,7 +1364,10 @@ router.post(
       return res
         .status(503)
         .json({
-          success: false,
+
+          success:
+            false,
+
           message:
             "KINTONE_WEBHOOK_SECRET 尚未設定"
         });
@@ -466,7 +1382,10 @@ router.post(
       return res
         .status(401)
         .json({
-          success: false,
+
+          success:
+            false,
+
           message:
             "Webhook 驗證失敗"
         });
@@ -476,7 +1395,8 @@ router.post(
     try {
 
       const webhook =
-        req.body || {};
+        req.body ||
+        {};
 
 
       const record =
@@ -488,7 +1408,10 @@ router.post(
         return res
           .status(400)
           .json({
-            success: false,
+
+            success:
+              false,
+
             message:
               "Webhook 缺少 record 資料"
           });
@@ -496,7 +1419,8 @@ router.post(
 
 
       const webhookType =
-        webhook.type || "";
+        webhook.type ||
+        "";
 
 
       const supportedTypes = [
@@ -517,8 +1441,13 @@ router.post(
       ) {
 
         return res.json({
-          success: true,
-          skipped: true,
+
+          success:
+            true,
+
+          skipped:
+            true,
+
           reason:
             `不處理 Webhook 類型：${webhookType}`
         });
@@ -526,7 +1455,7 @@ router.post(
 
 
       // ==================================
-      // 整理案件資料
+      // 維修人員名稱
       // ==================================
 
       const maintenanceStaff =
@@ -543,9 +1472,15 @@ router.post(
             (user) =>
               user.name
           )
-          .filter(Boolean)
+          .filter(
+            Boolean
+          )
           .join("、");
 
+
+      // ==================================
+      // 整理案件資料
+      // ==================================
 
       const repair = {
 
@@ -554,11 +1489,22 @@ router.post(
           webhook.id ||
           "",
 
+
+        notificationLanguage:
+          normalizeLanguage(
+            getFieldValue(
+              record,
+              "notification_language"
+            )
+          ),
+
+
         applicant:
           getFieldValue(
             record,
             "申請人"
           ),
+
 
         reporterLineworksUserId:
           getFieldValue(
@@ -566,11 +1512,13 @@ router.post(
             "lineworks_user_id"
           ),
 
+
         applicationDate:
           getFieldValue(
             record,
             "application_date"
           ),
+
 
         equipmentCategory:
           getFieldValue(
@@ -578,11 +1526,13 @@ router.post(
             "equipment_category"
           ),
 
+
         equipmentNumber:
           getFieldValue(
             record,
             "equipment_number"
           ),
+
 
         equipmentName:
           getFieldValue(
@@ -590,11 +1540,13 @@ router.post(
             "equipment_name"
           ),
 
+
         location:
           getFieldValue(
             record,
             "location"
           ),
+
 
         description:
           getFieldValue(
@@ -602,11 +1554,13 @@ router.post(
             "fault_description"
           ),
 
+
         status:
           getFieldValue(
             record,
             "處理狀態"
           ),
+
 
         engineerLineworksUserId:
           getFieldValue(
@@ -614,7 +1568,9 @@ router.post(
             "maintenance_lineworks_user_id"
           ),
 
+
         engineerNames,
+
 
         expectedCompletionDate:
           getFieldValue(
@@ -622,11 +1578,13 @@ router.post(
             "expected_completion_date"
           ),
 
+
         actualCompletionDate:
           getFieldValue(
             record,
             "actual_completion_date"
           ),
+
 
         maintenanceResult:
           getFieldValue(
@@ -644,25 +1602,23 @@ router.post(
             repair.recordId,
           status:
             repair.status,
+          language:
+            repair.notificationLanguage,
           reporterUserId:
-            repair
-              .reporterLineworksUserId,
+            repair.reporterLineworksUserId,
           engineerUserId:
-            repair
-              .engineerLineworksUserId
+            repair.engineerLineworksUserId
         }
       );
 
 
-      // ==================================
-      // 通知結果
-      // ==================================
-
-      const notifications = [];
+      const notifications =
+        [];
 
 
       // ==================================
       // 待分派工程師處理
+      // 但已選擇工程師
       // ==================================
 
       if (
@@ -670,13 +1626,53 @@ router.post(
         "待分派工程師處理"
       ) {
 
-        /*
-          若維修人員已經被選取，
-          但狀態尚未改成已指派工程師，
-          仍通知工程師。
-        */
+        if (
+          !repair
+            .engineerLineworksUserId
+        ) {
+
+          return res.json({
+
+            success:
+              true,
+
+            skipped:
+              true,
+
+            language:
+              repair.notificationLanguage,
+
+            reason:
+              "案件尚未指派工程師"
+          });
+        }
+
+
+        notifications.push(
+
+          await sendNotification(
+
+            repair
+              .engineerLineworksUserId,
+
+            buildEngineerAssignmentMessage(
+              repair
+            ),
+
+            "engineer",
+
+            repair.recordId,
+
+            repair.notificationLanguage
+          )
+        );
+
 
         if (
+          repair
+            .reporterLineworksUserId &&
+          repair
+            .reporterLineworksUserId !==
           repair
             .engineerLineworksUserId
         ) {
@@ -686,66 +1682,32 @@ router.post(
             await sendNotification(
 
               repair
-                .engineerLineworksUserId,
+                .reporterLineworksUserId,
 
-              buildEngineerAssignmentMessage(
+              buildReporterAssignmentMessage(
                 repair
               ),
 
-              "engineer",
+              "reporter",
 
-              repair.recordId
+              repair.recordId,
+
+              repair.notificationLanguage
             )
           );
-
-
-          if (
-            repair
-              .reporterLineworksUserId &&
-            repair
-              .reporterLineworksUserId !==
-            repair
-              .engineerLineworksUserId
-          ) {
-
-            notifications.push(
-
-              await sendNotification(
-
-                repair
-                  .reporterLineworksUserId,
-
-                buildReporterAssignmentMessage(
-                  repair
-                ),
-
-                "reporter",
-
-                repair.recordId
-              )
-            );
-          }
-
-
-          return res.json({
-            success: true,
-            message:
-              "工程師指派通知已處理",
-            recordId:
-              repair.recordId,
-            status:
-              repair.status,
-            notifications
-          });
         }
 
 
-        return res.json({
-          success: true,
-          skipped: true,
-          reason:
-            "案件尚未指派工程師"
-        });
+        return sendWebhookResponse(
+
+          res,
+
+          repair,
+
+          "Engineer assignment notification processed",
+
+          notifications
+        );
       }
 
 
@@ -771,12 +1733,16 @@ router.post(
 
             "engineer",
 
-            repair.recordId
+            repair.recordId,
+
+            repair.notificationLanguage
           )
         );
 
 
         if (
+          repair
+            .reporterLineworksUserId &&
           repair
             .reporterLineworksUserId !==
           repair
@@ -796,22 +1762,24 @@ router.post(
 
               "reporter",
 
-              repair.recordId
+              repair.recordId,
+
+              repair.notificationLanguage
             )
           );
         }
 
 
-        return res.json({
-          success: true,
-          message:
-            "工程師指派通知已處理",
-          recordId:
-            repair.recordId,
-          status:
-            repair.status,
+        return sendWebhookResponse(
+
+          res,
+
+          repair,
+
+          "Engineer assignment notification processed",
+
           notifications
-        });
+        );
       }
 
 
@@ -837,21 +1805,23 @@ router.post(
 
             "reporter",
 
-            repair.recordId
+            repair.recordId,
+
+            repair.notificationLanguage
           )
         );
 
 
-        return res.json({
-          success: true,
-          message:
-            "維修進度通知已處理",
-          recordId:
-            repair.recordId,
-          status:
-            repair.status,
+        return sendWebhookResponse(
+
+          res,
+
+          repair,
+
+          "Repair progress notification processed",
+
           notifications
-        });
+        );
       }
 
 
@@ -877,21 +1847,23 @@ router.post(
 
             "reporter",
 
-            repair.recordId
+            repair.recordId,
+
+            repair.notificationLanguage
           )
         );
 
 
-        return res.json({
-          success: true,
-          message:
-            "無法維修通知已處理",
-          recordId:
-            repair.recordId,
-          status:
-            repair.status,
+        return sendWebhookResponse(
+
+          res,
+
+          repair,
+
+          "Unable-to-repair notification processed",
+
           notifications
-        });
+        );
       }
 
 
@@ -917,31 +1889,41 @@ router.post(
 
             "reporter",
 
-            repair.recordId
+            repair.recordId,
+
+            repair.notificationLanguage
           )
         );
 
 
-        return res.json({
-          success: true,
-          message:
-            "案件完成通知已處理",
-          recordId:
-            repair.recordId,
-          status:
-            repair.status,
+        return sendWebhookResponse(
+
+          res,
+
+          repair,
+
+          "Repair completion notification processed",
+
           notifications
-        });
+        );
       }
 
 
       // ==================================
-      // 不支援的狀態
+      // 其他狀態
       // ==================================
 
       return res.json({
-        success: true,
-        skipped: true,
+
+        success:
+          true,
+
+        skipped:
+          true,
+
+        language:
+          repair.notificationLanguage,
+
         reason:
           `目前狀態「${repair.status}」未設定 Bot 通知`
       });
@@ -957,7 +1939,10 @@ router.post(
 
 
       return res.json({
-        success: false,
+
+        success:
+          false,
+
         message:
           error.message ||
           "Webhook 處理失敗"
