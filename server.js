@@ -1,7 +1,11 @@
 require("dotenv").config();
 
-const express = require("express");
-const path = require("path");
+const express =
+  require("express");
+
+const path =
+  require("path");
+
 
 const repairRoutes =
   require("./routes/repairs");
@@ -12,8 +16,13 @@ const engineerRepairRoutes =
 const kintoneWebhookRoutes =
   require("./routes/kintoneWebhook");
 
+const richMenuSetupRoutes =
+  require("./routes/richMenuSetup");
 
-const app = express();
+
+const app =
+  express();
+
 
 const PORT =
   process.env.PORT || 3000;
@@ -58,6 +67,13 @@ app.use(
 );
 
 
+// Rich Menu Setup
+app.use(
+  "/api/richmenu",
+  richMenuSetupRoutes
+);
+
+
 // ========================================
 // Health Check
 // ========================================
@@ -78,7 +94,6 @@ app.get(
 
 // ========================================
 // API 404
-// 必須放在全部 API Routes 後面
 // ========================================
 
 app.use(
