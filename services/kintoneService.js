@@ -1,6 +1,7 @@
 const axios = require("axios");
 const FormData = require("form-data");
 
+
 const KINTONE_BASE_URL =
   process.env.KINTONE_BASE_URL;
 
@@ -34,11 +35,53 @@ function checkConfig() {
 // Query 字串安全處理
 // ========================================
 
-function escapeQueryValue(value) {
+function escapeQueryValue(
+  value
+) {
 
-  return String(value)
-    .replace(/\\/g, "\\\\")
-    .replace(/"/g, '\\"');
+  return String(
+    value
+  )
+    .replace(
+      /\\/g,
+      "\\\\"
+    )
+    .replace(
+      /"/g,
+      '\\"'
+    );
+}
+
+
+// ========================================
+// 通知語言正規化
+// ========================================
+
+function normalizeLanguage(
+  language
+) {
+
+  const supportedLanguages = [
+    "zh-TW",
+    "ja-JP",
+    "en-US"
+  ];
+
+
+  if (
+    supportedLanguages.includes(
+      language
+    )
+  ) {
+
+    return language;
+  }
+
+
+  return (
+    process.env.APP_DEFAULT_LANGUAGE ||
+    "zh-TW"
+  );
 }
 
 
@@ -46,7 +89,9 @@ function escapeQueryValue(value) {
 // 上傳單一圖片到 kintone
 // ========================================
 
-async function uploadFile(file) {
+async function uploadFile(
+  file
+) {
 
   checkConfig();
 
@@ -116,7 +161,9 @@ async function createRepair(
   const uploadedFiles = [];
 
 
-  for (const file of files) {
+  for (
+    const file of files
+  ) {
 
     const fileKey =
       await uploadFile(
@@ -156,7 +203,17 @@ async function createRepair(
 
 
   // ======================================
-  // 3. 建立 kintone Record
+  // 3. 通知語言
+  // ======================================
+
+  const notificationLanguage =
+    normalizeLanguage(
+      repairData.language
+    );
+
+
+  // ======================================
+  // 4. 建立 kintone Record
   // ======================================
 
   const record = {
@@ -172,6 +229,12 @@ async function createRepair(
       value:
         repairData.reporterId ||
         ""
+    },
+
+
+    notification_language: {
+      value:
+        notificationLanguage
     },
 
 
@@ -226,7 +289,7 @@ async function createRepair(
 
 
   // ======================================
-  // 4. 新增 kintone Record
+  // 5. 新增 kintone Record
   // ======================================
 
   const response =
@@ -262,7 +325,9 @@ async function createRepair(
       response.data.id,
 
     revision:
-      response.data.revision
+      response.data.revision,
+
+    notificationLanguage
   };
 }
 
@@ -278,7 +343,9 @@ async function getMyRepairs(
   checkConfig();
 
 
-  if (!lineworksUserId) {
+  if (
+    !lineworksUserId
+  ) {
 
     throw new Error(
       "缺少 LINE WORKS User ID"
@@ -333,6 +400,10 @@ async function getMyRepairs(
 
             "申請人",
 
+            "lineworks_user_id",
+
+            "notification_language",
+
             "application_date",
 
             "equipment_category",
@@ -348,14 +419,12 @@ async function getMyRepairs(
 
             "maintenance_staff",
 
+            "maintenance_lineworks_user_id",
+
             "expected_completion_date",
             "actual_completion_date",
 
-            "maintenance_result",
-
-            "lineworks_user_id",
-
-            "maintenance_lineworks_user_id"
+            "maintenance_result"
           ]
         }
       }
@@ -363,7 +432,7 @@ async function getMyRepairs(
 
 
   // ======================================
-  // 整理前端使用格式
+  // 整理前端格式
   // ======================================
 
   const repairs =
@@ -376,7 +445,9 @@ async function getMyRepairs(
 
         const photos =
           (
-            record.fault_photo?.value ||
+            record
+              .fault_photo
+              ?.value ||
             []
           ).map(
             (file) => ({
@@ -417,33 +488,60 @@ async function getMyRepairs(
             "",
 
 
+          lineworksUserId:
+            record
+              .lineworks_user_id
+              ?.value ||
+            "",
+
+
+          notificationLanguage:
+            normalizeLanguage(
+              record
+                .notification_language
+                ?.value
+            ),
+
+
           applicationDate:
-            record.application_date?.value ||
+            record
+              .application_date
+              ?.value ||
             "",
 
 
           equipmentCategory:
-            record.equipment_category?.value ||
+            record
+              .equipment_category
+              ?.value ||
             "",
 
 
           equipmentNumber:
-            record.equipment_number?.value ||
+            record
+              .equipment_number
+              ?.value ||
             "",
 
 
           equipmentName:
-            record.equipment_name?.value ||
+            record
+              .equipment_name
+              ?.value ||
             "",
 
 
           location:
-            record.location?.value ||
+            record
+              .location
+              ?.value ||
             "",
 
 
           description:
-            record.fault_description?.value ||
+            record
+              .fault_description
+              ?.value ||
             "",
 
 
@@ -454,7 +552,9 @@ async function getMyRepairs(
 
           maintenanceStaff:
             (
-              record.maintenance_staff?.value ||
+              record
+                .maintenance_staff
+                ?.value ||
               []
             ).map(
               (user) => ({
@@ -468,39 +568,33 @@ async function getMyRepairs(
             ),
 
 
+          maintenanceLineworksUserId:
+            record
+              .maintenance_lineworks_user_id
+              ?.value ||
+            "",
+
+
           expectedCompletionDate:
             record
               .expected_completion_date
-              ?.value || "",
+              ?.value ||
+            "",
 
 
           actualCompletionDate:
             record
               .actual_completion_date
-              ?.value || "",
+              ?.value ||
+            "",
 
 
           maintenanceResult:
             record
               .maintenance_result
-              ?.value || "",
+              ?.value ||
+            "",
 
-
-          lineworksUserId:
-            record
-              .lineworks_user_id
-              ?.value || "",
-
-
-          maintenanceLineworksUserId:
-            record
-              .maintenance_lineworks_user_id
-              ?.value || "",
-
-
-          // =================================
-          // 新增：實際照片資訊
-          // =================================
 
           photos,
 
