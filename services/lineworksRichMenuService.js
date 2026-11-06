@@ -1,7 +1,14 @@
-const axios = require("axios");
-const fs = require("fs");
-const path = require("path");
-const FormData = require("form-data");
+const axios =
+  require("axios");
+
+const fs =
+  require("fs");
+
+const path =
+  require("path");
+
+const FormData =
+  require("form-data");
 
 const {
   getAccessToken
@@ -28,107 +35,56 @@ const MAXIMUM_IMAGE_SIZE =
 
 
 // ========================================
-// Rich Menu 語系設定
+// Rich Menu 圖片
 // ========================================
 
-const RICHMENU_CONFIGS = {
+const IMAGE_CONFIGS = {
 
   "zh-TW": {
-
-    language:
-      "zh-TW",
 
     lineworksLanguage:
       "zh_TW",
 
-    richmenuName:
-      "設備報修系統 ZH",
-
-    imageFileName:
+    fileName:
       "repair-richmenu-zh.png",
 
-    imagePath:
+    filePath:
       path.join(
         __dirname,
         "../assets/repair-richmenu-zh.png"
-      ),
-
-    labels: {
-      create:
-        "我要報修",
-
-      myRepairs:
-        "案件查詢",
-
-      engineer:
-        "維修任務"
-    }
+      )
   },
 
 
   "ja-JP": {
 
-    language:
-      "ja-JP",
-
     lineworksLanguage:
       "ja_JP",
 
-    richmenuName:
-      "設備修理システム JA",
-
-    imageFileName:
+    fileName:
       "repair-richmenu-ja.png",
 
-    imagePath:
+    filePath:
       path.join(
         __dirname,
         "../assets/repair-richmenu-ja.png"
-      ),
-
-    labels: {
-      create:
-        "修理を依頼",
-
-      myRepairs:
-        "案件照会",
-
-      engineer:
-        "修理タスク"
-    }
+      )
   },
 
 
   "en-US": {
 
-    language:
-      "en-US",
-
     lineworksLanguage:
       "en_US",
 
-    richmenuName:
-      "Equipment Repair System EN",
-
-    imageFileName:
+    fileName:
       "repair-richmenu-en.png",
 
-    imagePath:
+    filePath:
       path.join(
         __dirname,
         "../assets/repair-richmenu-en.png"
-      ),
-
-    labels: {
-      create:
-        "Request Repair",
-
-      myRepairs:
-        "My Cases",
-
-      engineer:
-        "Repair Tasks"
-    }
+      )
   }
 };
 
@@ -170,26 +126,26 @@ function checkConfig() {
 
   Object
     .values(
-      RICHMENU_CONFIGS
+      IMAGE_CONFIGS
     )
     .forEach(
       (config) => {
 
         if (
           !fs.existsSync(
-            config.imagePath
+            config.filePath
           )
         ) {
 
           throw new Error(
-            `找不到 assets/${config.imageFileName}`
+            `找不到 assets/${config.fileName}`
           );
         }
 
 
         const stats =
           fs.statSync(
-            config.imagePath
+            config.filePath
           );
 
 
@@ -198,7 +154,7 @@ function checkConfig() {
         ) {
 
           throw new Error(
-            `${config.imageFileName} 圖片內容為空`
+            `${config.fileName} 圖片內容為空`
           );
         }
 
@@ -209,7 +165,7 @@ function checkConfig() {
         ) {
 
           throw new Error(
-            `${config.imageFileName} 超過 1 MB`
+            `${config.fileName} 超過 1 MB`
           );
         }
       }
@@ -252,7 +208,7 @@ function getImageInformation(
 ) {
 
   const config =
-    RICHMENU_CONFIGS[
+    IMAGE_CONFIGS[
       language
     ];
 
@@ -267,17 +223,22 @@ function getImageInformation(
 
   const stats =
     fs.statSync(
-      config.imagePath
+      config.filePath
     );
 
 
   return {
 
+    language,
+
+    lineworksLanguage:
+      config.lineworksLanguage,
+
     fileName:
-      config.imageFileName,
+      config.fileName,
 
     filePath:
-      config.imagePath,
+      config.filePath,
 
     fileSize:
       stats.size
@@ -286,12 +247,13 @@ function getImageInformation(
 
 
 // ========================================
-// 建立各語系 WOFF URL
+// WOFF URL
 // ========================================
 
-function getActionUrls(
-  language
-) {
+function getActionUrls() {
+
+  checkConfig();
+
 
   const createUrl =
     new URL(
@@ -299,14 +261,11 @@ function getActionUrls(
     );
 
 
-  createUrl.searchParams.delete(
-    "view"
-  );
-
-  createUrl.searchParams.set(
-    "lang",
-    language
-  );
+  createUrl
+    .searchParams
+    .delete(
+      "view"
+    );
 
 
   const myRepairsUrl =
@@ -315,15 +274,12 @@ function getActionUrls(
     );
 
 
-  myRepairsUrl.searchParams.set(
-    "view",
-    "my-repairs"
-  );
-
-  myRepairsUrl.searchParams.set(
-    "lang",
-    language
-  );
+  myRepairsUrl
+    .searchParams
+    .set(
+      "view",
+      "my-repairs"
+    );
 
 
   const engineerUrl =
@@ -332,15 +288,12 @@ function getActionUrls(
     );
 
 
-  engineerUrl.searchParams.set(
-    "view",
-    "engineer"
-  );
-
-  engineerUrl.searchParams.set(
-    "lang",
-    language
-  );
+  engineerUrl
+    .searchParams
+    .set(
+      "view",
+      "engineer"
+    );
 
 
   return {
@@ -358,56 +311,7 @@ function getActionUrls(
 
 
 // ========================================
-// Desktop 多語 Label
-// ========================================
-
-function createI18nLabels(
-  actionKey
-) {
-
-  return [
-
-    {
-      language:
-        "zh_TW",
-
-      label:
-        RICHMENU_CONFIGS[
-          "zh-TW"
-        ].labels[
-          actionKey
-        ]
-    },
-
-    {
-      language:
-        "ja_JP",
-
-      label:
-        RICHMENU_CONFIGS[
-          "ja-JP"
-        ].labels[
-          actionKey
-        ]
-    },
-
-    {
-      language:
-        "en_US",
-
-      label:
-        RICHMENU_CONFIGS[
-          "en-US"
-        ].labels[
-          actionKey
-        ]
-    }
-  ];
-}
-
-
-// ========================================
-// 建立 Storage Upload Resource
+// 取得 Storage Upload URL
 // ========================================
 
 async function createImageUploadResource(
@@ -430,105 +334,86 @@ async function createImageUploadResource(
     );
 
 
-  try {
+  const response =
+    await axios.post(
 
-    const response =
-      await axios.post(
+      `${API_BASE_URL}/bots/` +
+      `${encodedBotId}/attachments`,
 
-        `${API_BASE_URL}/bots/` +
-        `${encodedBotId}/attachments`,
-
-        {
-          fileName:
-            image.fileName,
-
-          fileSize:
-            image.fileSize
-        },
-
-        {
-          headers: {
-
-            ...headers,
-
-            "Content-Type":
-              "application/json"
-          },
-
-          timeout:
-            15000
-        }
-      );
-
-
-    const fileId =
-      response.data?.fileId;
-
-
-    const uploadUrl =
-      response.data?.uploadUrl;
-
-
-    if (
-      !fileId ||
-      !uploadUrl
-    ) {
-
-      throw new Error(
-        `LINE WORKS 未回傳 ${language} 圖片的 fileId 或 uploadUrl`
-      );
-    }
-
-
-    console.log(
-      "Rich Menu upload resource created:",
       {
-        language,
-        fileId,
+
         fileName:
           image.fileName,
+
         fileSize:
           image.fileSize
-      }
-    );
+      },
 
-
-    return {
-
-      ...image,
-
-      fileId,
-
-      uploadUrl
-    };
-
-
-  } catch (error) {
-
-    console.error(
-      "Create Rich Menu upload resource failed:",
       {
-        language,
 
-        status:
-          error.response?.status,
+        headers: {
 
-        data:
-          error.response?.data,
+          ...headers,
 
-        message:
-          error.message
+          "Content-Type":
+            "application/json"
+        },
+
+        timeout:
+          15000
       }
     );
 
 
-    throw error;
+  const fileId =
+    response.data?.fileId;
+
+
+  const uploadUrl =
+    response.data?.uploadUrl;
+
+
+  if (
+    !fileId ||
+    !uploadUrl
+  ) {
+
+    throw new Error(
+      `${language} 圖片未取得 fileId 或 uploadUrl`
+    );
   }
+
+
+  console.log(
+    "Rich Menu upload resource created:",
+    {
+
+      language,
+
+      fileName:
+        image.fileName,
+
+      fileSize:
+        image.fileSize,
+
+      fileId
+    }
+  );
+
+
+  return {
+
+    ...image,
+
+    fileId,
+
+    uploadUrl
+  };
 }
 
 
 // ========================================
-// 上傳 Rich Menu 圖片
+// 上傳單一 Rich Menu 圖片
 // ========================================
 
 async function uploadRichMenuImage(
@@ -556,15 +441,21 @@ async function uploadRichMenuImage(
 
 
   form.append(
+
     "resourceName",
+
     uploadResource.fileName
   );
 
 
   form.append(
+
     "Filedata",
+
     imageBuffer,
+
     {
+
       filename:
         uploadResource.fileName,
 
@@ -577,131 +468,94 @@ async function uploadRichMenuImage(
   );
 
 
-  try {
+  const response =
+    await axios.post(
 
-    const response =
-      await axios.post(
+      uploadResource.uploadUrl,
 
-        uploadResource.uploadUrl,
+      form,
 
-        form,
-
-        {
-          headers: {
-
-            Authorization:
-              `Bearer ${accessToken}`,
-
-            ...form.getHeaders()
-          },
-
-          maxBodyLength:
-            Infinity,
-
-          maxContentLength:
-            Infinity,
-
-          timeout:
-            30000,
-
-          validateStatus:
-            (status) =>
-              status >= 200 &&
-              status < 300
-        }
-      );
-
-
-    const uploadedFileId =
-      response.data?.fileId ||
-      uploadResource.fileId;
-
-
-    console.log(
-      "Rich Menu image uploaded:",
       {
-        language,
 
-        fileId:
-          uploadedFileId,
+        headers: {
 
-        fileName:
-          uploadResource.fileName,
+          Authorization:
+            `Bearer ${accessToken}`,
 
-        fileSize:
-          uploadResource.fileSize,
+          ...form.getHeaders()
+        },
 
-        status:
-          response.status
+        maxBodyLength:
+          Infinity,
+
+        maxContentLength:
+          Infinity,
+
+        timeout:
+          30000,
+
+        validateStatus:
+          (status) =>
+            status >= 200 &&
+            status < 300
       }
     );
 
 
-    return {
+  const uploadedFileId =
+    response.data?.fileId ||
+    uploadResource.fileId;
+
+
+  console.log(
+    "Rich Menu image uploaded:",
+    {
 
       language,
 
-      fileId:
-        uploadedFileId,
+      fileName:
+        uploadResource.fileName,
 
       fileSize:
         uploadResource.fileSize,
 
-      fileName:
-        uploadResource.fileName
-    };
+      fileId:
+        uploadedFileId
+    }
+  );
 
 
-  } catch (error) {
+  return {
 
-    console.error(
-      "Rich Menu image upload failed:",
-      {
-        language,
+    language,
 
-        status:
-          error.response?.status,
+    lineworksLanguage:
+      uploadResource
+        .lineworksLanguage,
 
-        data:
-          error.response?.data,
+    fileId:
+      uploadedFileId,
 
-        message:
-          error.message
-      }
-    );
+    fileName:
+      uploadResource.fileName,
 
-
-    throw error;
-  }
+    fileSize:
+      uploadResource.fileSize
+  };
 }
 
 
 // ========================================
-// 建立一個語系 Rich Menu
+// 建立 Rich Menu
 // ========================================
 
-async function createRichMenu(
-  language
-) {
+async function createRichMenu() {
 
-  const config =
-    RICHMENU_CONFIGS[
-      language
-    ];
-
-
-  if (!config) {
-
-    throw new Error(
-      `不支援 Rich Menu 語系：${language}`
-    );
-  }
+  checkConfig();
 
 
   const urls =
-    getActionUrls(
-      language
-    );
+    getActionUrls();
 
 
   const headers =
@@ -717,7 +571,7 @@ async function createRichMenu(
   const richMenuBody = {
 
     richmenuName:
-      config.richmenuName,
+      "LINE WORKS x kintone Equipment Repair",
 
     size: {
 
@@ -728,6 +582,7 @@ async function createRichMenu(
         843
     },
 
+
     areas: [
 
       // ==================================
@@ -735,6 +590,7 @@ async function createRichMenu(
       // ==================================
 
       {
+
         bounds: {
 
           x:
@@ -750,18 +606,44 @@ async function createRichMenu(
             843
         },
 
+
         action: {
 
           type:
             "uri",
 
           label:
-            config.labels.create,
+            "我要報修",
 
-          i18nLabels:
-            createI18nLabels(
-              "create"
-            ),
+          i18nLabels: [
+
+            {
+
+              language:
+                "zh_TW",
+
+              label:
+                "我要報修"
+            },
+
+            {
+
+              language:
+                "ja_JP",
+
+              label:
+                "修理を依頼"
+            },
+
+            {
+
+              language:
+                "en_US",
+
+              label:
+                "Request Repair"
+            }
+          ],
 
           uri:
             urls.create
@@ -774,6 +656,7 @@ async function createRichMenu(
       // ==================================
 
       {
+
         bounds: {
 
           x:
@@ -789,18 +672,44 @@ async function createRichMenu(
             843
         },
 
+
         action: {
 
           type:
             "uri",
 
           label:
-            config.labels.myRepairs,
+            "案件查詢",
 
-          i18nLabels:
-            createI18nLabels(
-              "myRepairs"
-            ),
+          i18nLabels: [
+
+            {
+
+              language:
+                "zh_TW",
+
+              label:
+                "案件查詢"
+            },
+
+            {
+
+              language:
+                "ja_JP",
+
+              label:
+                "案件照会"
+            },
+
+            {
+
+              language:
+                "en_US",
+
+              label:
+                "My Cases"
+            }
+          ],
 
           uri:
             urls.myRepairs
@@ -813,6 +722,7 @@ async function createRichMenu(
       // ==================================
 
       {
+
         bounds: {
 
           x:
@@ -828,18 +738,44 @@ async function createRichMenu(
             843
         },
 
+
         action: {
 
           type:
             "uri",
 
           label:
-            config.labels.engineer,
+            "維修任務",
 
-          i18nLabels:
-            createI18nLabels(
-              "engineer"
-            ),
+          i18nLabels: [
+
+            {
+
+              language:
+                "zh_TW",
+
+              label:
+                "維修任務"
+            },
+
+            {
+
+              language:
+                "ja_JP",
+
+              label:
+                "修理タスク"
+            },
+
+            {
+
+              language:
+                "en_US",
+
+              label:
+                "Repair Tasks"
+            }
+          ],
 
           uri:
             urls.engineer
@@ -849,100 +785,74 @@ async function createRichMenu(
   };
 
 
-  try {
+  const response =
+    await axios.post(
 
-    const response =
-      await axios.post(
+      `${API_BASE_URL}/bots/` +
+      `${encodedBotId}/richmenus`,
 
-        `${API_BASE_URL}/bots/` +
-        `${encodedBotId}/richmenus`,
+      richMenuBody,
 
-        richMenuBody,
-
-        {
-          headers: {
-
-            ...headers,
-
-            "Content-Type":
-              "application/json"
-          },
-
-          timeout:
-            15000
-        }
-      );
-
-
-    const richmenuId =
-      response.data?.richmenuId;
-
-
-    if (!richmenuId) {
-
-      throw new Error(
-        `LINE WORKS 未回傳 ${language} richmenuId`
-      );
-    }
-
-
-    console.log(
-      "LINE WORKS Rich Menu created:",
       {
-        language,
-        richmenuId,
-        richmenuName:
-          config.richmenuName,
-        urls
+
+        headers: {
+
+          ...headers,
+
+          "Content-Type":
+            "application/json"
+        },
+
+        timeout:
+          15000
       }
     );
 
 
-    return {
+  const richmenuId =
+    response.data?.richmenuId;
 
-      language,
+
+  if (!richmenuId) {
+
+    throw new Error(
+      "LINE WORKS 未回傳 richmenuId"
+    );
+  }
+
+
+  console.log(
+    "Multilingual Rich Menu created:",
+    {
 
       richmenuId,
 
-      richmenuName:
-        config.richmenuName,
-
       urls
-    };
+    }
+  );
 
 
-  } catch (error) {
+  return {
 
-    console.error(
-      "Create Rich Menu failed:",
-      {
-        language,
+    richmenuId,
 
-        status:
-          error.response?.status,
-
-        data:
-          error.response?.data,
-
-        message:
-          error.message
-      }
-    );
-
-
-    throw error;
-  }
+    urls
+  };
 }
 
 
 // ========================================
-// 將圖片套用至 Rich Menu
+// 套用三語系 Rich Menu 圖片
+//
+// 中文 fileId = Default
+// ja_JP = 日文圖片
+// en_US = 英文圖片
+// zh_TW = 中文圖片
 // ========================================
 
-async function setRichMenuImage(
+async function setMultilingualRichMenuImage(
   richmenuId,
-  fileId,
-  language
+  images
 ) {
 
   if (!richmenuId) {
@@ -953,10 +863,24 @@ async function setRichMenuImage(
   }
 
 
-  if (!fileId) {
+  const zhImage =
+    images["zh-TW"];
+
+  const jaImage =
+    images["ja-JP"];
+
+  const enImage =
+    images["en-US"];
+
+
+  if (
+    !zhImage?.fileId ||
+    !jaImage?.fileId ||
+    !enImage?.fileId
+  ) {
 
     throw new Error(
-      "缺少 Rich Menu 圖片 fileId"
+      "Rich Menu 三語系圖片 fileId 不完整"
     );
   }
 
@@ -977,6 +901,46 @@ async function setRichMenuImage(
     );
 
 
+  const body = {
+
+    // Default 圖片
+    fileId:
+      zhImage.fileId,
+
+
+    // 多語圖片
+    i18nFileIds: [
+
+      {
+
+        language:
+          "zh_TW",
+
+        fileId:
+          zhImage.fileId
+      },
+
+      {
+
+        language:
+          "ja_JP",
+
+        fileId:
+          jaImage.fileId
+      },
+
+      {
+
+        language:
+          "en_US",
+
+        fileId:
+          enImage.fileId
+      }
+    ]
+  };
+
+
   try {
 
     const response =
@@ -986,11 +950,10 @@ async function setRichMenuImage(
         `${encodedBotId}/richmenus/` +
         `${encodedRichmenuId}/image`,
 
-        {
-          fileId
-        },
+        body,
 
         {
+
           headers: {
 
             ...headers,
@@ -1006,11 +969,20 @@ async function setRichMenuImage(
 
 
     console.log(
-      "Rich Menu image assigned:",
+      "Multilingual Rich Menu images assigned:",
       {
-        language,
+
         richmenuId,
-        fileId,
+
+        zh:
+          zhImage.fileId,
+
+        ja:
+          jaImage.fileId,
+
+        en:
+          enImage.fileId,
+
         status:
           response.status
       }
@@ -1018,6 +990,7 @@ async function setRichMenuImage(
 
 
     return {
+
       success:
         true
     };
@@ -1026,9 +999,8 @@ async function setRichMenuImage(
   } catch (error) {
 
     console.error(
-      "Set Rich Menu image failed:",
+      "Set multilingual Rich Menu image failed:",
       {
-        language,
 
         status:
           error.response?.status,
@@ -1039,9 +1011,7 @@ async function setRichMenuImage(
         message:
           error.message,
 
-        richmenuId,
-
-        fileId
+        richmenuId
       }
     );
 
@@ -1052,20 +1022,12 @@ async function setRichMenuImage(
 
 
 // ========================================
-// 設為 Bot Default Rich Menu
+// 設為 Default Rich Menu
 // ========================================
 
 async function setDefaultRichMenu(
   richmenuId
 ) {
-
-  if (!richmenuId) {
-
-    throw new Error(
-      "缺少 richmenuId"
-    );
-  }
-
 
   const headers =
     await getAuthorizationHeaders();
@@ -1093,6 +1055,7 @@ async function setDefaultRichMenu(
       null,
 
       {
+
         headers: {
 
           ...headers,
@@ -1107,186 +1070,22 @@ async function setDefaultRichMenu(
     );
 
 
-  const defaultRichmenuId =
-    response.data?.defaultRichmenuId ||
-    richmenuId;
-
-
-  console.log(
-    "Default Rich Menu set:",
-    {
-      botId:
-        BOT_ID,
-
-      richmenuId,
-
-      defaultRichmenuId,
-
-      status:
-        response.status
-    }
-  );
-
-
   return {
 
     botId:
       response.data?.botId ||
       BOT_ID,
 
-    defaultRichmenuId
+    defaultRichmenuId:
+      response.data
+        ?.defaultRichmenuId ||
+      richmenuId
   };
 }
 
 
 // ========================================
-// 指定 User Custom Rich Menu
-// ========================================
-
-async function setUserRichMenu(
-  userId,
-  language
-) {
-
-  checkConfig();
-
-
-  if (!userId) {
-
-    throw new Error(
-      "缺少 LINE WORKS User ID"
-    );
-  }
-
-
-  const config =
-    RICHMENU_CONFIGS[
-      language
-    ];
-
-
-  if (
-    !config?.richmenuId
-  ) {
-
-    throw new Error(
-      `${language} richmenuId 尚未設定`
-    );
-  }
-
-
-  const headers =
-    await getAuthorizationHeaders();
-
-
-  const encodedBotId =
-    encodeURIComponent(
-      BOT_ID
-    );
-
-
-  const encodedRichmenuId =
-    encodeURIComponent(
-      config.richmenuId
-    );
-
-
-  const encodedUserId =
-    encodeURIComponent(
-      userId
-    );
-
-
-  await axios.post(
-
-    `${API_BASE_URL}/bots/` +
-    `${encodedBotId}/richmenus/` +
-    `${encodedRichmenuId}/users/` +
-    `${encodedUserId}`,
-
-    null,
-
-    {
-      headers,
-
-      timeout:
-        15000
-    }
-  );
-
-
-  return {
-
-    success:
-      true,
-
-    userId,
-
-    language,
-
-    richmenuId:
-      config.richmenuId
-  };
-}
-
-
-// ========================================
-// 建立單一語系 Rich Menu
-// ========================================
-
-async function setupLanguageRichMenu(
-  language
-) {
-
-  const uploadedImage =
-    await uploadRichMenuImage(
-      language
-    );
-
-
-  const createdRichMenu =
-    await createRichMenu(
-      language
-    );
-
-
-  await setRichMenuImage(
-
-    createdRichMenu.richmenuId,
-
-    uploadedImage.fileId,
-
-    language
-  );
-
-
-  return {
-
-    language,
-
-    richmenuId:
-      createdRichMenu.richmenuId,
-
-    richmenuName:
-      createdRichMenu.richmenuName,
-
-    fileId:
-      uploadedImage.fileId,
-
-    imageSize:
-      uploadedImage.fileSize,
-
-    imageFileName:
-      uploadedImage.fileName,
-
-    urls:
-      createdRichMenu.urls
-  };
-}
-
-
-// ========================================
-// 完整三語系 Rich Menu Setup
+// 完整 Rich Menu Setup
 // ========================================
 
 async function setupRepairRichMenu() {
@@ -1295,70 +1094,81 @@ async function setupRepairRichMenu() {
 
 
   console.log(
-    "Starting multilingual LINE WORKS Rich Menu setup..."
+    "Starting multilingual Rich Menu setup..."
   );
 
 
   // ======================================
-  // 1. 建立繁中 Rich Menu
+  // 1. 上傳中文圖片
   // ======================================
 
-  const zhRichMenu =
-    await setupLanguageRichMenu(
+  const zhImage =
+    await uploadRichMenuImage(
       "zh-TW"
     );
 
 
   // ======================================
-  // 2. 建立日文 Rich Menu
+  // 2. 上傳日文圖片
   // ======================================
 
-  const jaRichMenu =
-    await setupLanguageRichMenu(
+  const jaImage =
+    await uploadRichMenuImage(
       "ja-JP"
     );
 
 
   // ======================================
-  // 3. 建立英文 Rich Menu
+  // 3. 上傳英文圖片
   // ======================================
 
-  const enRichMenu =
-    await setupLanguageRichMenu(
+  const enImage =
+    await uploadRichMenuImage(
       "en-US"
     );
 
 
+  const images = {
+
+    "zh-TW":
+      zhImage,
+
+    "ja-JP":
+      jaImage,
+
+    "en-US":
+      enImage
+  };
+
+
   // ======================================
-  // 4. 中文設成 Default
+  // 4. 建立 ONE Rich Menu
+  // ======================================
+
+  const createdRichMenu =
+    await createRichMenu();
+
+
+  // ======================================
+  // 5. 一次套用三語系圖片
+  // ======================================
+
+  await setMultilingualRichMenuImage(
+
+    createdRichMenu.richmenuId,
+
+    images
+  );
+
+
+  // ======================================
+  // 6. 設成 Default
   // ======================================
 
   const defaultResult =
     await setDefaultRichMenu(
-      zhRichMenu.richmenuId
+      createdRichMenu.richmenuId
     );
-
-
-  // ======================================
-  // 5. 記錄 Rich Menu ID
-  // ======================================
-
-  RICHMENU_CONFIGS[
-    "zh-TW"
-  ].richmenuId =
-    zhRichMenu.richmenuId;
-
-
-  RICHMENU_CONFIGS[
-    "ja-JP"
-  ].richmenuId =
-    jaRichMenu.richmenuId;
-
-
-  RICHMENU_CONFIGS[
-    "en-US"
-  ].richmenuId =
-    enRichMenu.richmenuId;
 
 
   const result = {
@@ -1366,28 +1176,61 @@ async function setupRepairRichMenu() {
     success:
       true,
 
-    defaultLanguage:
-      "zh-TW",
+    richmenuId:
+      createdRichMenu.richmenuId,
 
     defaultRichmenuId:
-      defaultResult.defaultRichmenuId,
+      defaultResult
+        .defaultRichmenuId,
 
-    richmenus: {
+    images: {
 
-      "zh-TW":
-        zhRichMenu,
+      "zh-TW": {
 
-      "ja-JP":
-        jaRichMenu,
+        fileId:
+          zhImage.fileId,
 
-      "en-US":
-        enRichMenu
-    }
+        fileName:
+          zhImage.fileName,
+
+        fileSize:
+          zhImage.fileSize
+      },
+
+
+      "ja-JP": {
+
+        fileId:
+          jaImage.fileId,
+
+        fileName:
+          jaImage.fileName,
+
+        fileSize:
+          jaImage.fileSize
+      },
+
+
+      "en-US": {
+
+        fileId:
+          enImage.fileId,
+
+        fileName:
+          enImage.fileName,
+
+        fileSize:
+          enImage.fileSize
+      }
+    },
+
+    urls:
+      createdRichMenu.urls
   };
 
 
   console.log(
-    "Multilingual LINE WORKS Rich Menu setup completed:",
+    "Multilingual Rich Menu setup completed:",
     result
   );
 
@@ -1402,7 +1245,5 @@ async function setupRepairRichMenu() {
 
 module.exports = {
 
-  setupRepairRichMenu,
-
-  setUserRichMenu
+  setupRepairRichMenu
 };
