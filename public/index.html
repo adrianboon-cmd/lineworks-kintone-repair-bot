@@ -2,6 +2,7 @@
 <html lang="zh-Hant">
 
 <head>
+
   <meta charset="UTF-8">
 
   <meta
@@ -11,14 +12,20 @@
 
   <title>設備報修</title>
 
-  <link rel="stylesheet" href="/style.css">
+  <link
+    rel="stylesheet"
+    href="/style.css"
+  >
 
   <!-- LINE WORKS WOFF SDK -->
+
   <script
     charset="utf-8"
-    src="https://static.worksmobile.net/static/wm/woff/edge/3.7.1/sdk.js">
-  </script>
+    src="https://static.worksmobile.net/static/wm/woff/edge/3.7.1/sdk.js"
+  ></script>
+
 </head>
+
 
 <body>
 
@@ -30,11 +37,57 @@
 
     <header class="app-header">
 
-      <h1>🔧 設備報修</h1>
+      <div class="header-top-row">
 
-      <p>
-        LINE WORKS × kintone
-      </p>
+        <div>
+
+          <h1>
+            🔧
+            <span data-i18n="app.title">
+              設備報修
+            </span>
+          </h1>
+
+          <p data-i18n="app.subtitle">
+            LINE WORKS × kintone
+          </p>
+
+        </div>
+
+
+        <!-- 語言選擇 -->
+
+        <div class="language-selector">
+
+          <label
+            for="languageSelect"
+            class="language-label"
+          >
+            🌐
+          </label>
+
+          <select
+            id="languageSelect"
+            aria-label="選擇語言"
+          >
+
+            <option value="zh-TW">
+              繁體中文
+            </option>
+
+            <option value="ja-JP">
+              日本語
+            </option>
+
+            <option value="en-US">
+              English
+            </option>
+
+          </select>
+
+        </div>
+
+      </div>
 
     </header>
 
@@ -49,13 +102,22 @@
         正在取得 LINE WORKS 使用者資訊...
       </div>
 
-<div
-  id="userInfo"
-  style="display: none;"
->
-  👤 申請人：
-  <strong id="displayUserName"></strong>
-</div>
+
+      <div
+        id="userInfo"
+        style="display: none;"
+      >
+
+        👤
+
+        <span data-i18n="common.applicant">
+          申請人
+        </span>：
+
+        <strong id="displayUserName"></strong>
+
+      </div>
+
 
       <div
         id="userError"
@@ -70,37 +132,57 @@
          功能切換
     ================================== -->
 
-<nav
-  id="navigation"
-  class="navigation"
-  style="display: none;"
->
+    <nav
+      id="navigation"
+      class="navigation"
+      style="display: none;"
+    >
 
-  <button
-    id="createViewButton"
-    class="navigation-button active"
-    type="button"
-  >
-    🔧 我要報修
-  </button>
+      <button
+        id="createViewButton"
+        class="navigation-button active"
+        type="button"
+      >
 
-  <button
-    id="myRepairsViewButton"
-    class="navigation-button"
-    type="button"
-  >
-    🔍 我的案件
-  </button>
+        🔧
 
-  <button
-    id="engineerViewButton"
-    class="navigation-button"
-    type="button"
-  >
-    👨‍🔧 維修任務
-  </button>
+        <span data-i18n="navigation.createRepair">
+          我要報修
+        </span>
 
-</nav>
+      </button>
+
+
+      <button
+        id="myRepairsViewButton"
+        class="navigation-button"
+        type="button"
+      >
+
+        🔍
+
+        <span data-i18n="navigation.myRepairs">
+          案件查詢
+        </span>
+
+      </button>
+
+
+      <button
+        id="engineerViewButton"
+        class="navigation-button"
+        type="button"
+      >
+
+        👨‍🔧
+
+        <span data-i18n="navigation.engineerTasks">
+          維修任務
+        </span>
+
+      </button>
+
+    </nav>
 
 
     <!-- =================================
@@ -114,9 +196,11 @@
 
       <div class="section-heading">
 
-        <h2>建立報修</h2>
+        <h2 data-i18n="repairForm.heading">
+          建立報修
+        </h2>
 
-        <p>
+        <p data-i18n="repairForm.description">
           請填寫設備故障資訊
         </p>
 
@@ -125,141 +209,223 @@
 
       <form id="repairForm">
 
-<label for="equipmentCategory">
-  設備類別 *
-</label>
+        <!-- 設備類別 -->
 
-<select
-  id="equipmentCategory"
-  name="equipmentCategory"
-  required
->
-  <option value="">
-    請選擇設備類別
-  </option>
+        <label for="equipmentCategory">
 
-  <option value="辦公設備">
-    辦公設備
-  </option>
+          <span data-i18n="repairForm.equipmentCategory">
+            設備類別
+          </span>
 
-  <option value="電腦及資訊設備">
-    電腦及資訊設備
-  </option>
+          *
 
-  <option value="網路及通訊設備">
-    網路及通訊設備
-  </option>
+        </label>
 
-  <option value="生產設備">
-    生產設備
-  </option>
 
-  <option value="空調及機電設備">
-    空調及機電設備
-  </option>
+        <select
+          id="equipmentCategory"
+          name="equipmentCategory"
+          required
+        >
 
-  <option value="門禁及監控設備">
-    門禁及監控設備
-  </option>
+          <option
+            value=""
+            data-i18n="repairForm.selectEquipmentCategory"
+          >
+            請選擇設備類別
+          </option>
 
-  <option value="其他">
-    其他
-  </option>
-</select>
+          <option value="辦公設備">
+            辦公設備
+          </option>
 
+          <option value="電腦及資訊設備">
+            電腦及資訊設備
+          </option>
+
+          <option value="網路及通訊設備">
+            網路及通訊設備
+          </option>
+
+          <option value="生產設備">
+            生產設備
+          </option>
+
+          <option value="空調及機電設備">
+            空調及機電設備
+          </option>
+
+          <option value="門禁及監控設備">
+            門禁及監控設備
+          </option>
+
+          <option value="其他">
+            其他
+          </option>
+
+        </select>
+
+
+        <!-- 設備編號 -->
 
         <label for="equipmentNumber">
-          設備編號
+
+          <span data-i18n="repairForm.equipmentNumber">
+            設備編號
+          </span>
+
         </label>
+
 
         <input
           id="equipmentNumber"
           name="equipmentNumber"
           type="text"
           placeholder="例如：MFP-001"
+          data-i18n-placeholder="repairForm.equipmentNumberPlaceholder"
         >
 
 
+        <!-- 設備名稱 -->
+
         <label for="equipmentName">
-          設備名稱 *
+
+          <span data-i18n="repairForm.equipmentName">
+            設備名稱
+          </span>
+
+          *
+
         </label>
+
 
         <input
           id="equipmentName"
           name="equipmentName"
           type="text"
           placeholder="例如：Apeos C3570"
+          data-i18n-placeholder="repairForm.equipmentNamePlaceholder"
           required
         >
 
 
-<label for="location">
-  所在位置 *
-</label>
+        <!-- 所在位置 -->
 
-<select
-  id="location"
-  name="location"
-  required
->
-  <option value="">
-    請選擇設備所在位置
-  </option>
+        <label for="location">
 
-  <optgroup label="總公司">
-    <option value="總公司 6F 辦公室">
-      總公司 6F 辦公室
-    </option>
+          <span data-i18n="repairForm.location">
+            所在位置
+          </span>
 
-    <option value="總公司 7F 辦公室">
-      總公司 7F 辦公室
-    </option>
+          *
 
-    <option value="總公司 公共區域">
-      總公司 公共區域
-    </option>
-  </optgroup>
+        </label>
 
-  <optgroup label="桃園廠">
-    <option value="桃園廠 產線 A">
-      桃園廠 產線 A
-    </option>
 
-    <option value="桃園廠 產線 B">
-      桃園廠 產線 B
-    </option>
+        <select
+          id="location"
+          name="location"
+          required
+        >
 
-    <option value="桃園廠 倉庫">
-      桃園廠 倉庫
-    </option>
+          <option
+            value=""
+            data-i18n="repairForm.selectLocation"
+          >
+            請選擇設備所在位置
+          </option>
 
-    <option value="桃園廠 辦公室">
-      桃園廠 辦公室
-    </option>
-  </optgroup>
 
-  <optgroup label="其他">
-    <option value="其他">
-      其他位置
-    </option>
-  </optgroup>
-</select>
+          <optgroup
+            label="總公司"
+            data-i18n-label="locations.headOffice"
+          >
+
+            <option value="總公司 6F 辦公室">
+              總公司 6F 辦公室
+            </option>
+
+            <option value="總公司 7F 辦公室">
+              總公司 7F 辦公室
+            </option>
+
+            <option value="總公司 公共區域">
+              總公司 公共區域
+            </option>
+
+          </optgroup>
+
+
+          <optgroup
+            label="桃園廠"
+            data-i18n-label="locations.taoyuanFactory"
+          >
+
+            <option value="桃園廠 產線 A">
+              桃園廠 產線 A
+            </option>
+
+            <option value="桃園廠 產線 B">
+              桃園廠 產線 B
+            </option>
+
+            <option value="桃園廠 倉庫">
+              桃園廠 倉庫
+            </option>
+
+            <option value="桃園廠 辦公室">
+              桃園廠 辦公室
+            </option>
+
+          </optgroup>
+
+
+          <optgroup
+            label="其他"
+            data-i18n-label="locations.otherGroup"
+          >
+
+            <option value="其他">
+              其他位置
+            </option>
+
+          </optgroup>
+
+        </select>
+
+
+        <!-- 故障描述 -->
 
         <label for="description">
-          故障描述 *
+
+          <span data-i18n="repairForm.faultDescription">
+            故障描述
+          </span>
+
+          *
+
         </label>
+
 
         <textarea
           id="description"
           name="description"
           placeholder="請描述故障狀況，例如：列印時持續卡紙"
+          data-i18n-placeholder="repairForm.faultDescriptionPlaceholder"
           required
         ></textarea>
 
 
+        <!-- 故障照片 -->
+
         <label for="images">
-          故障照片
+
+          <span data-i18n="repairForm.faultPhoto">
+            故障照片
+          </span>
+
         </label>
+
 
         <input
           id="images"
@@ -270,7 +436,11 @@
           multiple
         >
 
-        <small class="field-note">
+
+        <small
+          class="field-note"
+          data-i18n="repairForm.photoNote"
+        >
           最多 3 張，每張最大 10 MB
         </small>
 
@@ -305,19 +475,30 @@
       <div class="section-heading section-heading-row">
 
         <div>
-          <h2>我的報修案件</h2>
 
-          <p>
+          <h2 data-i18n="myRepairs.heading">
+            我的報修案件
+          </h2>
+
+          <p data-i18n="myRepairs.description">
             查詢您所提出的設備報修
           </p>
+
         </div>
+
 
         <button
           id="refreshRepairsButton"
           class="refresh-button"
           type="button"
         >
-          ↻ 重新整理
+
+          ↻
+
+          <span data-i18n="common.refresh">
+            重新整理
+          </span>
+
         </button>
 
       </div>
@@ -329,6 +510,7 @@
         id="repairsLoading"
         class="state-message"
         style="display: none;"
+        data-i18n="myRepairs.loading"
       >
         正在查詢報修案件...
       </div>
@@ -351,17 +533,21 @@
         class="state-message empty-message"
         style="display: none;"
       >
+
         <div class="empty-icon">
           📭
         </div>
 
-        <strong>
+
+        <strong data-i18n="myRepairs.empty">
           目前沒有報修案件
         </strong>
 
-        <p>
+
+        <p data-i18n="myRepairs.emptyDescription">
           若設備發生問題，可以點選「我要報修」建立案件。
         </p>
+
       </div>
 
 
@@ -371,78 +557,96 @@
 
     </section>
 
-<!-- =================================
-     我的維修任務頁面
-================================== -->
 
-<section
-  id="engineerView"
-  class="view-section"
-  style="display: none;"
->
+    <!-- =================================
+         我的維修任務頁面
+    ================================== -->
 
-  <div class="section-heading section-heading-row">
-
-    <div>
-      <h2>我的維修任務</h2>
-
-      <p>
-        查看並更新指派給您的維修案件
-      </p>
-    </div>
-
-    <button
-      id="refreshEngineerButton"
-      class="refresh-button"
-      type="button"
+    <section
+      id="engineerView"
+      class="view-section"
+      style="display: none;"
     >
-      ↻ 重新整理
-    </button>
 
-  </div>
+      <div class="section-heading section-heading-row">
 
+        <div>
 
-  <div
-    id="engineerLoading"
-    class="state-message"
-    style="display: none;"
-  >
-    正在查詢維修任務...
-  </div>
+          <h2 data-i18n="engineer.heading">
+            我的維修任務
+          </h2>
 
 
-  <div
-    id="engineerError"
-    class="state-message error-message"
-    style="display: none;"
-  >
-  </div>
+          <p data-i18n="engineer.description">
+            查看並更新指派給您的維修案件
+          </p>
+
+        </div>
 
 
-  <div
-    id="engineerEmpty"
-    class="state-message empty-message"
-    style="display: none;"
-  >
+        <button
+          id="refreshEngineerButton"
+          class="refresh-button"
+          type="button"
+        >
 
-    <div class="empty-icon">
-      🧰
-    </div>
+          ↻
 
-    <strong>
-      目前沒有指派給您的維修案件
-    </strong>
+          <span data-i18n="common.refresh">
+            重新整理
+          </span>
 
-    <p>
-      kintone 指派案件後，任務會顯示在這裡。
-    </p>
+        </button>
 
-  </div>
+      </div>
 
 
-  <div id="engineerRepairsList"></div>
+      <div
+        id="engineerLoading"
+        class="state-message"
+        style="display: none;"
+        data-i18n="engineer.loading"
+      >
+        正在查詢維修任務...
+      </div>
 
-</section>
+
+      <div
+        id="engineerError"
+        class="state-message error-message"
+        style="display: none;"
+      >
+      </div>
+
+
+      <div
+        id="engineerEmpty"
+        class="state-message empty-message"
+        style="display: none;"
+      >
+
+        <div class="empty-icon">
+          🧰
+        </div>
+
+
+        <strong data-i18n="engineer.empty">
+          目前沒有指派給您的維修案件
+        </strong>
+
+
+        <p data-i18n="engineer.emptyDescription">
+          kintone 指派案件後，任務會顯示在這裡。
+        </p>
+
+      </div>
+
+
+      <div id="engineerRepairsList"></div>
+
+    </section>
+
+
     <!-- =================================
          案件詳細資料視窗
     ================================== -->
@@ -455,19 +659,25 @@
 
       <div class="modal-overlay"></div>
 
+
       <div class="modal-content">
 
         <div class="modal-header">
 
-          <h2 id="detailTitle">
+          <h2
+            id="detailTitle"
+            data-i18n="myRepairs.caseDetail"
+          >
             案件詳情
           </h2>
+
 
           <button
             id="closeDetailButton"
             class="close-button"
             type="button"
             aria-label="關閉案件詳情"
+            data-i18n-aria-label="common.close"
           >
             ×
           </button>
@@ -483,143 +693,212 @@
 
   </main>
 
-<!-- =================================
-     工程師維修更新視窗
-================================== -->
 
-<div
-  id="engineerUpdateModal"
-  class="modal"
-  style="display: none;"
->
+  <!-- =================================
+       工程師維修更新視窗
+  ================================== -->
 
-  <div class="modal-overlay"></div>
+  <div
+    id="engineerUpdateModal"
+    class="modal"
+    style="display: none;"
+  >
 
-  <div class="modal-content">
+    <div class="modal-overlay"></div>
 
-    <div class="modal-header">
 
-      <h2 id="engineerModalTitle">
-        更新維修進度
-      </h2>
+    <div class="modal-content">
 
-      <button
-        id="closeEngineerModalButton"
-        class="close-button"
-        type="button"
-        aria-label="關閉維修更新視窗"
-      >
-        ×
-      </button>
+      <div class="modal-header">
+
+        <h2
+          id="engineerModalTitle"
+          data-i18n="engineer.update"
+        >
+          更新維修進度
+        </h2>
+
+
+        <button
+          id="closeEngineerModalButton"
+          class="close-button"
+          type="button"
+          aria-label="關閉維修更新視窗"
+          data-i18n-aria-label="common.close"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <div id="engineerCaseSummary"></div>
+
+
+      <form id="engineerUpdateForm">
+
+        <input
+          id="engineerRecordId"
+          type="hidden"
+        >
+
+
+        <label for="engineerStatus">
+
+          <span data-i18n="fields.status">
+            處理狀態
+          </span>
+
+          *
+
+        </label>
+
+
+        <select
+          id="engineerStatus"
+          required
+        >
+
+          <option
+            value="已指派工程師"
+            data-status-key="assigned"
+          >
+            已指派工程師
+          </option>
+
+          <option
+            value="維修中"
+            data-status-key="inProgress"
+          >
+            維修中
+          </option>
+
+          <option
+            value="無法維修"
+            data-status-key="unrepairable"
+          >
+            無法維修
+          </option>
+
+          <option
+            value="已完成"
+            data-status-key="completed"
+          >
+            已完成
+          </option>
+
+        </select>
+
+
+        <label for="engineerExpectedDate">
+
+          <span data-i18n="fields.expectedCompletionDate">
+            預計完成日期
+          </span>
+
+        </label>
+
+
+        <input
+          id="engineerExpectedDate"
+          type="date"
+        >
+
+
+        <label for="engineerActualDate">
+
+          <span data-i18n="fields.actualCompletionDate">
+            實際完成日期
+          </span>
+
+        </label>
+
+
+        <input
+          id="engineerActualDate"
+          type="date"
+        >
+
+
+        <label
+          for="engineerResult"
+          data-i18n="engineer.maintenanceProgress"
+        >
+          維修進度／維修結果
+        </label>
+
+
+        <textarea
+          id="engineerResult"
+          placeholder="例如：已完成初步檢查，等待更換零件"
+          data-i18n-placeholder="engineer.resultPlaceholder"
+        ></textarea>
+
+
+        <button
+          id="engineerUpdateButton"
+          class="primary-button"
+          type="submit"
+          data-i18n="engineer.update"
+        >
+          更新維修進度
+        </button>
+
+      </form>
 
     </div>
 
-
-    <div id="engineerCaseSummary"></div>
-
-
-    <form id="engineerUpdateForm">
-
-      <input
-        id="engineerRecordId"
-        type="hidden"
-      >
-
-
-      <label for="engineerStatus">
-        處理狀態 *
-      </label>
-
-      <select
-        id="engineerStatus"
-        required
-      >
-        <option value="已指派工程師">
-          已指派工程師
-        </option>
-
-        <option value="維修中">
-          維修中
-        </option>
-
-        <option value="無法維修">
-          無法維修
-        </option>
-
-        <option value="已完成">
-          已完成
-        </option>
-      </select>
-
-
-      <label for="engineerExpectedDate">
-        預計完成日期
-      </label>
-
-      <input
-        id="engineerExpectedDate"
-        type="date"
-      >
-
-
-      <label for="engineerActualDate">
-        實際完成日期
-      </label>
-
-      <input
-        id="engineerActualDate"
-        type="date"
-      >
-
-
-      <label for="engineerResult">
-        維修進度／維修結果
-      </label>
-
-      <textarea
-        id="engineerResult"
-        placeholder="例如：已完成初步檢查，等待更換零件"
-      ></textarea>
-
-
-      <button
-        id="engineerUpdateButton"
-        class="primary-button"
-        type="submit"
-      >
-        更新維修進度
-      </button>
-
-    </form>
-
   </div>
 
-</div>
-  
-<script>
-  window.appJsStarted = false;
-</script>
 
-<script src="/app.js"></script>
+  <!-- =================================
+       JavaScript
+  ================================== -->
 
-<script>
-  setTimeout(() => {
+  <script>
+    window.appJsStarted = false;
+  </script>
 
-    if (!window.appJsStarted) {
 
-      const loading =
-        document.getElementById("userLoading");
+  <!-- 語系檔必須放在 app.js 前面 -->
 
-      if (loading) {
+  <script src="/i18n.js"></script>
 
-        loading.innerHTML =
-          "❌ app.js 沒有正常啟動<br><br>" +
-          "請檢查 JavaScript 語法錯誤";
-      }
-    }
 
-  }, 3000);
-</script>
+  <script src="/app.js"></script>
+
+
+  <!-- app.js 啟動診斷 -->
+
+  <script>
+
+    setTimeout(
+      () => {
+
+        if (
+          !window.appJsStarted
+        ) {
+
+          const loading =
+            document.getElementById(
+              "userLoading"
+            );
+
+
+          if (loading) {
+
+            loading.innerHTML =
+              "❌ app.js 沒有正常啟動<br><br>" +
+              "請檢查 JavaScript 語法錯誤";
+          }
+        }
+
+      },
+      3000
+    );
+
+  </script>
+
 </body>
 
 </html>
