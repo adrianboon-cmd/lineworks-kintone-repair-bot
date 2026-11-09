@@ -1139,23 +1139,26 @@ router.post(
 
     } catch (error) {
 
-      if (
-        error.response?.data
-      ) {
+if (
+  error.response?.data
+) {
 
-        console.error(
-          "kintone repair API error:",
-          error.response.data
-        );
+  console.error(
+    "kintone repair API error:",
+    JSON.stringify(
+      error.response.data,
+      null,
+      2
+    )
+  );
 
-      } else {
+} else {
 
-        console.error(
-          "Repair API error:",
-          error
-        );
-      }
-
+  console.error(
+    "Repair API error:",
+    error
+  );
+}
 
       next(error);
     }
